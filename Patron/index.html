@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0C0C12" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Patron" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<style id="pwa-mobile">
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+img{max-width:100%;height:auto}
+@media (max-width:480px){input,select,textarea{font-size:16px !important}}
+@supports (padding:max(0px)){body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}}
+</style>
+<title>Vitality · dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("patron_theme")||"nocturne");}catch(e){document.documentElement.setAttribute("data-theme","nocturne");}</script>
+<style>
+/* ============================================================
+ * Vitality — the main dashboard. Bento hub linking every app
+ * in the Patron suite + a shared "Today's vitals" tile (Whoop /
+ * Apple Watch / Manual). Same token system + 3 themes as the suite.
+ * ============================================================ */
+:root {
+  color-scheme: dark;
+  --bg: #0C0C12; --bg-elevated: #15151F;
+  --surface: rgba(255,255,255,0.028); --surface-2: rgba(255,255,255,0.055);
+  --fg: #F3F2F8; --muted: rgba(243,242,248,0.50); --muted-strong: rgba(243,242,248,0.74);
+  --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.17);
+  --brand: #8B7CFF; --brand-2: #C7BBFF; --brand-ink: #130E2E;
+  --brand-soft: rgba(139,124,255,0.12); --brand-line: rgba(139,124,255,0.28); --brand-glow: rgba(139,124,255,0.42);
+  --pos: #46E0A8; --pos-soft: rgba(70,224,168,0.12); --pos-line: rgba(70,224,168,0.26);
+  --neg: #FB7185; --neg-soft: rgba(251,113,133,0.12); --neg-line: rgba(251,113,133,0.26);
+  --warn: #FBBF24; --warn-soft: rgba(251,191,36,0.10); --warn-line: rgba(251,191,36,0.26);
+  --track: rgba(255,255,255,0.06);
+  --card-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px -30px rgba(0,0,0,0.85);
+  --glow-1: rgba(139,124,255,0.12); --glow-2: rgba(70,224,168,0.05);
+  --grain-opacity: 0.05; --overlay: rgba(6,6,12,0.66);
+  --space-1:.25rem; --space-2:.5rem; --space-3:.75rem; --space-4:1rem;
+  --space-5:1.25rem; --space-6:1.5rem; --space-8:2rem; --space-10:2.5rem; --space-12:3rem; --space-16:4rem;
+  --radius-sm: 8px; --radius-md: 11px; --radius-lg: 18px; --radius-pill: 999px;
+  --text-xs:.75rem; --text-sm:.875rem; --text-base:1rem; --text-lg:1.125rem;
+  --text-xl:1.375rem; --text-2xl:1.75rem; --text-3xl:2.5rem;
+  --ease: cubic-bezier(0.2,0.8,0.2,1); --ease-premium: cubic-bezier(0.16,1,0.3,1);
+  --duration-fast:120ms; --duration:200ms;
+  --font-display:'Space Grotesk'; --font-ui:'Hanken Grotesk'; --font-mono:'JetBrains Mono';
+}
+[data-theme="aurora"] {
+  color-scheme: dark;
+  --bg: #080913; --bg-elevated: #12131F;
+  --surface: rgba(150,160,255,0.045); --surface-2: rgba(150,160,255,0.08);
+  --fg: #EEF0FF; --muted: rgba(220,225,255,0.52); --muted-strong: rgba(220,225,255,0.76);
+  --border: rgba(150,160,255,0.11); --border-strong: rgba(150,160,255,0.22);
+  --brand: #8B7BFF; --brand-2: #B9ABFF; --brand-ink: #0A0922;
+  --brand-soft: rgba(139,123,255,0.15); --brand-line: rgba(139,123,255,0.32); --brand-glow: rgba(124,107,255,0.6);
+  --pos: #4FE3D0; --pos-soft: rgba(79,227,208,0.13); --pos-line: rgba(79,227,208,0.28);
+  --neg: #FF6FA5; --neg-soft: rgba(255,111,165,0.13); --neg-line: rgba(255,111,165,0.28);
+  --warn: #FFC65C; --warn-soft: rgba(255,198,92,0.11); --warn-line: rgba(255,198,92,0.28);
+  --track: rgba(160,170,255,0.09);
+  --card-shadow: 0 0 0 1px rgba(140,130,255,0.05) inset, 0 22px 56px -28px rgba(78,60,210,0.55);
+  --glow-1: rgba(124,107,255,0.20); --glow-2: rgba(79,227,208,0.13);
+  --grain-opacity: 0.05; --overlay: rgba(5,6,16,0.7);
+}
+[data-theme="daylight"] {
+  color-scheme: light;
+  --bg: #F3F2FA; --bg-elevated: #FFFFFF;
+  --surface: #FFFFFF; --surface-2: #FAF9FF;
+  --fg: #171622; --muted: rgba(23,22,34,0.52); --muted-strong: rgba(23,22,34,0.72);
+  --border: rgba(23,22,60,0.10); --border-strong: rgba(23,22,60,0.18);
+  --brand: #6A45FF; --brand-2: #8E6BFF; --brand-ink: #FFFFFF;
+  --brand-soft: rgba(106,69,255,0.08); --brand-line: rgba(106,69,255,0.24); --brand-glow: rgba(106,69,255,0.28);
+  --pos: #0E9E64; --pos-soft: rgba(14,158,100,0.10); --pos-line: rgba(14,158,100,0.26);
+  --neg: #E11D63; --neg-soft: rgba(225,29,99,0.08); --neg-line: rgba(225,29,99,0.24);
+  --warn: #B4690E; --warn-soft: rgba(180,105,14,0.10); --warn-line: rgba(180,105,14,0.24);
+  --track: rgba(23,22,60,0.08);
+  --card-shadow: 0 1px 2px rgba(23,22,60,0.05), 0 16px 34px -24px rgba(23,22,60,0.24);
+  --glow-1: rgba(106,69,255,0.07); --glow-2: rgba(14,158,100,0.04);
+  --grain-opacity: 0.02; --overlay: rgba(28,26,52,0.4);
+}
+
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: var(--text-base); -webkit-font-smoothing: antialiased; transition: background var(--duration) var(--ease); }
+.grain-overlay { position: relative; }
+.grain-overlay::after { content:''; position: fixed; inset:0; pointer-events:none; z-index:1; opacity: var(--grain-opacity); mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); background-size: 200px 200px; }
+.page { position: relative; min-height: 100dvh; background: var(--bg); color: var(--fg); padding: var(--space-8) var(--space-5) var(--space-16); isolation: isolate; }
+.page::before { content:''; position: absolute; inset:0; pointer-events:none; z-index:-1; background: radial-gradient(58% 42% at 82% 6%, var(--glow-1), transparent 70%), radial-gradient(48% 38% at 12% 92%, var(--glow-2), transparent 72%); }
+.shell { max-width: 1080px; margin: 0 auto; }
+
+/* Header */
+.header { display:flex; align-items:flex-end; justify-content:space-between; gap: var(--space-4); margin-bottom: var(--space-8); flex-wrap: wrap; }
+.title { font-family: var(--font-display); font-weight: 600; font-size: var(--text-3xl); line-height: 1.0; letter-spacing: -0.03em; margin: 0; }
+.subtitle { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); margin: 6px 0 0; }
+.themeSeg { display:inline-flex; align-items:center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+.themeBtn { appearance:none; background: transparent; border:0; color: var(--muted); font-family: var(--font-ui); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; padding: 5px 11px 5px 8px; border-radius: var(--radius-pill); cursor: pointer; display:inline-flex; align-items:center; gap:6px; transition: background var(--duration) var(--ease-premium), color var(--duration) var(--ease-premium); }
+.themeBtn:hover { color: var(--muted-strong); }
+.themeSwatch { width: 11px; height: 11px; border-radius: 50%; box-shadow: 0 0 0 1px var(--border-strong) inset; flex-shrink:0; }
+.themeBtnActive, .themeBtnActive:hover { background: var(--brand-soft); color: var(--fg); }
+.themeBtnActive .themeSwatch { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--brand); }
+
+/* Header controls + profile chip */
+.headerControls { display:flex; align-items:center; gap: var(--space-3); flex-wrap: wrap; }
+.profileChip { display:inline-flex; align-items:center; gap: 8px; padding: 5px 13px 5px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); color: var(--fg); font-family: var(--font-ui); font-size: 12px; font-weight: 600; cursor: pointer; transition: border-color var(--duration) var(--ease-premium), background var(--duration) var(--ease-premium); }
+.profileChip:hover { border-color: var(--brand-line); background: var(--brand-soft); }
+.profileChipNew { padding: 7px 14px; color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); }
+.profileAvatar { display:grid; place-items:center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-family: var(--font-display); font-weight: 700; font-size: 12px; }
+
+/* Daily reminders */
+.reminders { display:flex; align-items:center; flex-wrap:wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
+.remindersLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: var(--space-2); }
+.reminderChip { display:inline-flex; align-items:center; gap: 7px; padding: 7px 12px; border-radius: var(--radius-pill); border: 1px solid var(--warn-line); background: var(--warn-soft); color: var(--fg); font-size: 12px; font-weight: 600; text-decoration: none; transition: border-color var(--duration) var(--ease-premium), background var(--duration) var(--ease-premium), transform var(--duration) var(--ease-premium); }
+.reminderChip:hover { border-color: var(--warn); transform: translateY(-1px); }
+.reminderDot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 8px var(--warn); flex-shrink:0; }
+.reminderGo { color: var(--muted); }
+
+/* Bento grid */
+.bento { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: var(--space-4); grid-auto-flow: dense; }
+@media (max-width: 900px) { .bento { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 520px) { .bento { grid-template-columns: 1fr; } }
+.tileWide { grid-column: span 2; }
+@media (max-width: 520px) { .tileWide { grid-column: span 1; } }
+
+/* App card */
+.card { position: relative; display:flex; flex-direction:column; gap: var(--space-3); min-height: 132px; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--card-shadow); text-decoration:none; color: var(--fg); overflow:hidden; transition: border-color var(--duration) var(--ease-premium), background var(--duration) var(--ease-premium), transform var(--duration) var(--ease-premium), box-shadow var(--duration) var(--ease-premium); }
+.card:hover { border-color: var(--brand-line); background: var(--brand-soft); transform: translateY(-2px); box-shadow: 0 0 40px -18px var(--brand-glow), var(--card-shadow); }
+.cardIcon { display:grid; place-items:center; width: 42px; height: 42px; border-radius: 13px; background: var(--brand-soft); border: 1px solid var(--brand-line); font-size: 20px; flex-shrink:0; }
+.cardName { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: -0.02em; }
+.cardTag { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.cardArrow { position:absolute; top: var(--space-5); right: var(--space-5); color: var(--muted); font-size: 16px; transition: color var(--duration) var(--ease-premium), transform var(--duration) var(--ease-premium); }
+.card:hover .cardArrow { color: var(--brand); transform: translate(2px,-2px); }
+.cardTop { display:flex; align-items:center; gap: var(--space-3); }
+.cardStat { display:flex; flex-direction:column; gap: 2px; margin-top: auto; }
+.cardStatValue { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; color: var(--fg); font-variant-numeric: tabular-nums; }
+.cardStatLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+/* Vitals tile */
+.vitals { grid-column: span 2; grid-row: span 2; display:flex; flex-direction:column; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--brand-line); border-radius: var(--radius-lg); background: var(--brand-soft); box-shadow: 0 0 50px -24px var(--brand-glow), var(--card-shadow); }
+@media (max-width: 520px) { .vitals { grid-column: span 1; grid-row: auto; } }
+.vitalsHead { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); flex-wrap:wrap; }
+.vitalsEyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand); }
+.srcBadge { display:inline-flex; align-items:center; gap: 6px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); color: var(--muted-strong); }
+.srcDot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 8px var(--brand-glow); }
+.vitalsBody { display:flex; align-items:center; gap: var(--space-6); flex-wrap: wrap; }
+.recRing { position: relative; width: 132px; height: 132px; display:grid; place-items:center; flex-shrink:0; }
+.recRing svg { position:absolute; inset:0; transform: rotate(-90deg); }
+.recTrack { fill:none; stroke: var(--track); stroke-width: 9; }
+.recFill { fill:none; stroke: currentColor; stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 700ms var(--ease-premium); filter: drop-shadow(0 0 10px currentColor); }
+.recRing[data-tone="good"] .recFill { color: var(--pos); }
+.recRing[data-tone="watch"] .recFill { color: var(--warn); }
+.recRing[data-tone="low"] .recFill { color: var(--neg); }
+.recRing[data-tone="muted"] .recFill { color: var(--muted); }
+.recNum { font-family: var(--font-display); font-weight: 600; font-size: 2.5rem; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.recUnit { font-size: var(--text-base); color: var(--muted-strong); }
+.recCap { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+.vMetrics { display:flex; flex-direction:column; gap: var(--space-3); flex:1; min-width: 150px; }
+.vRow { display:flex; align-items:baseline; justify-content:space-between; gap: var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--border); }
+.vRow:last-child { border-bottom:0; }
+.vLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.vVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
+.vVal em { font-family: var(--font-mono); font-style: normal; font-size: 11px; color: var(--muted); margin-left: 4px; }
+.vitalsFoot { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); flex-wrap: wrap; }
+.vitalsSync { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.vitalsEmpty { display:flex; flex-direction:column; gap: var(--space-3); justify-content:center; flex:1; }
+.vitalsEmptyTitle { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; }
+.vitalsEmptyBody { font-size: 13px; color: var(--muted-strong); line-height: 1.55; max-width: 42ch; }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap: var(--space-2); padding: 0.6rem var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-family: var(--font-ui); font-weight: 600; cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--fg); white-space: nowrap; transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease), color var(--duration) var(--ease), filter var(--duration) var(--ease), box-shadow var(--duration) var(--ease); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--brand); color: var(--brand-ink); font-weight: 700; }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 0 26px var(--brand-glow); }
+.btn-ghost { color: var(--fg); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--border-strong); background: var(--surface); }
+.btn-link { color: var(--muted-strong); padding: var(--space-2) var(--space-2); }
+.btn-link:hover { color: var(--neg); }
+
+/* Modal */
+.overlay { position: fixed; inset:0; background: var(--overlay); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 1000; display:grid; place-items:center; padding: var(--space-4); animation: fade 200ms var(--ease-premium); }
+@keyframes fade { from { opacity:0; } to { opacity:1; } }
+.panel { width: min(480px, 100%); background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: 0 28px 70px -16px rgba(0,0,0,0.6); animation: rise 320ms var(--ease-premium); }
+@keyframes rise { from { opacity:0; transform: translateY(12px) scale(0.98); } to { opacity:1; transform:none; } }
+.panelHead { display:flex; align-items:flex-start; justify-content:space-between; gap: var(--space-3); margin-bottom: var(--space-5); }
+.panelEyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: var(--brand); }
+.panelTitle { font-family: var(--font-display); font-weight: 600; font-size: var(--text-2xl); letter-spacing: -0.03em; margin: var(--space-2) 0 0; }
+.panelClose { background: transparent; border: 1px solid var(--border); color: var(--muted-strong); font-size: 20px; line-height: 1; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; flex-shrink:0; }
+.panelClose:hover { color: var(--fg); border-color: var(--border-strong); }
+.srcPills { display:flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap; }
+.srcPill { appearance:none; flex:1; min-width: 96px; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--muted-strong); font-family: var(--font-ui); font-size: 13px; font-weight: 600; cursor: pointer; display:flex; flex-direction:column; align-items:center; gap: 4px; transition: all var(--duration) var(--ease-premium); }
+.srcPill .srcEmoji { font-size: 18px; }
+.srcPillActive, .srcPillActive:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--fg); box-shadow: 0 0 0 3px var(--brand-soft); }
+.fieldGrid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.field { display:flex; flex-direction:column; gap: 6px; }
+.fieldFull { grid-column: 1 / -1; }
+.fieldLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.fieldInput { width:100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; color: var(--fg); font-family: var(--font-mono); font-size: 14px; outline: none; transition: border-color var(--duration) var(--ease-premium), box-shadow var(--duration) var(--ease-premium); }
+.fieldInput:focus { border-color: var(--brand-line); box-shadow: 0 0 0 3px var(--brand-soft); }
+.panelNote { margin: var(--space-4) 0 0; padding: var(--space-3) var(--space-4); border-left: 2px solid var(--brand-line); background: var(--brand-soft); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; line-height: 1.55; color: var(--muted-strong); }
+.panelNote a { color: var(--brand); text-decoration:none; }
+.panelNote a:hover { text-decoration: underline; }
+.panelActions { display:flex; align-items:center; justify-content:flex-end; gap: var(--space-2); margin-top: var(--space-6); }
+.panelActions .spacer { margin-right:auto; }
+.srcActions { display:flex; align-items:center; gap: var(--space-2); margin-top: var(--space-4); }
+.srcActions .spacer { margin-right:auto; }
+
+/* ============================================================
+ * Live vitals ticker — a scrolling marquee of every metric the
+ * suite currently knows (vitals + finance/water/supplements).
+ * Lead label is pinned; the track scrolls right→left, duplicated
+ * once for a seamless loop. Pauses on hover; honours reduced-motion.
+ * ============================================================ */
+.ticker { position: relative; display:flex; align-items:stretch; gap: 0; margin: calc(var(--space-2) * -1) 0 var(--space-8); border: 1px solid var(--border); border-radius: var(--radius-pill); background: linear-gradient(180deg, var(--surface-2), var(--surface)); box-shadow: var(--card-shadow); overflow: hidden; }
+.ticker:hover .tickerTrack { animation-play-state: paused; }
+.tickerLead { display:flex; align-items:center; gap: 9px; flex-shrink:0; padding: 0 var(--space-4) 0 var(--space-5); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted-strong); border-right: 1px solid var(--border); position: relative; z-index:2; background: linear-gradient(180deg, var(--surface-2), var(--surface)); }
+.tickerPulse { width: 7px; height: 7px; border-radius: 50%; background: var(--pos); box-shadow: 0 0 0 0 var(--pos); animation: tickerPulse 2.4s var(--ease) infinite; flex-shrink:0; }
+@keyframes tickerPulse { 0% { box-shadow: 0 0 0 0 var(--pos-line); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.tickerViewport { position: relative; flex:1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 92%, transparent); }
+.tickerTrack { display:flex; align-items:center; width: max-content; padding: 13px 0; animation: tickerScroll linear infinite; will-change: transform; }
+@keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.tickerItem { display:inline-flex; align-items:center; gap: 11px; padding: 0 var(--space-5); border-right: 1px solid var(--border); white-space: nowrap; color: var(--brand); }
+.tiLabel { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; color: var(--muted); }
+.tiVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: -0.01em; color: var(--fg); font-variant-numeric: tabular-nums; }
+.tiUnit { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 3px; }
+.tiDelta { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: currentColor; }
+.tiSpark { display:block; flex-shrink:0; }
+.tickerItem[data-tone="good"] { color: var(--pos); }
+.tickerItem[data-tone="watch"] { color: var(--warn); }
+.tickerItem[data-tone="low"] { color: var(--neg); }
+.tickerItem[data-tone="muted"] { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .tickerTrack { animation: none; } .tickerViewport { overflow-x: auto; } }
+
+/* How-to steps (Apple Watch manual-copy guide inside the vitals modal) */
+.howto { margin: var(--space-4) 0 var(--space-2); padding: var(--space-4); border: 1px solid var(--brand-line); background: var(--brand-soft); border-radius: var(--radius-md); }
+.howtoTitle { display:flex; align-items:center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-3); }
+.howtoSteps { list-style: none; margin: 0; padding: 0; display:flex; flex-direction:column; gap: var(--space-3); counter-reset: step; }
+.howtoSteps li { position: relative; padding-left: 34px; font-size: 13px; line-height: 1.5; color: var(--muted-strong); counter-increment: step; }
+.howtoSteps li::before { content: counter(step); position: absolute; left: 0; top: -1px; display:grid; place-items:center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-family: var(--font-display); font-weight: 700; font-size: 12px; }
+.howtoSteps strong { color: var(--fg); font-weight: 600; }
+.howtoChips { display:flex; flex-wrap:wrap; gap: 6px; margin-top: 6px; }
+.howtoChip { display:inline-block; padding: 3px 9px; border-radius: var(--radius-pill); background: var(--surface-2); border: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--fg); }
+.howtoFoot { margin: var(--space-3) 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="page grain-overlay">
+  <div class="shell" id="app"></div>
+</main>
+<div id="modalRoot"></div>
+<script>
+/* ============================================================
+ * Apps in the suite — one bento card each.
+ * ============================================================ */
+const APPS = [
+  { file: 'finance.html',     name: 'Finance',     tag: 'Net worth · subs · orders · wishlist', icon: '💰', wide: true },
+  { file: 'gym.html',         name: 'Gym',         tag: 'Progressive overload coach',           icon: '🏋️', wide: true },
+  { file: 'supplements.html', name: 'Supplements', tag: 'Your stack + smart recommendations',   icon: '💊' },
+  { file: 'whoop.html',       name: 'Fitness Band', tag: 'Whoop · Fitbit · Apple Watch sync',      icon: '🔋' },
+  { file: 'water.html',       name: 'Water',       tag: 'Daily hydration target',                icon: '💧' },
+  { file: 'creator.html',     name: 'Creator',     tag: 'Schedule · accounts · analytics',       icon: '🎬' },
+  { file: 'goals.html',       name: 'Goals',       tag: 'Goals & streaks',                       icon: '🎯' },
+  { file: 'progress.html',    name: 'Progress',    tag: 'Photos & measurements',                 icon: '📈' },
+  { file: 'macros.html',      name: 'Macros',      tag: 'Protein · carbs · fat',                 icon: '🍳' },
+];
+
+/* ============================================================
+ * Theme (shared across the whole suite via patron_theme)
+ * ============================================================ */
+const THEMES = [
+  { key: 'nocturne', label: 'Nocturne', swatch: '#8B7CFF' },
+  { key: 'aurora', label: 'Aurora', swatch: 'linear-gradient(135deg,#8B7BFF,#4FE3D0)' },
+  { key: 'daylight', label: 'Daylight', swatch: '#6A45FF' },
+];
+let currentTheme = (function(){ try { return localStorage.getItem('patron_theme') || 'nocturne'; } catch(e){ return 'nocturne'; } })();
+if (!THEMES.some(t => t.key === currentTheme)) currentTheme = 'nocturne';
+function applyTheme(name){
+  if (!THEMES.some(t => t.key === name)) name = 'nocturne';
+  currentTheme = name;
+  document.documentElement.setAttribute('data-theme', name);
+  try { localStorage.setItem('patron_theme', name); } catch(e){}
+  render();
+}
+function themeSegHtml(){
+  return '<div class="themeSeg" role="radiogroup" aria-label="Theme">'
+    + THEMES.map(t => '<button type="button" class="themeBtn ' + (t.key === currentTheme ? 'themeBtnActive' : '') + '" data-action="theme" data-theme="' + t.key + '"><span class="themeSwatch" style="background:' + t.swatch + '"></span>' + t.label + '</button>').join('')
+    + '</div>';
+}
+
+/* ============================================================
+ * Shared health record — the suite-wide vitals bridge.
+ * Whoop publishes it from the Whoop tab; this hub lets non-Whoop
+ * users enter it manually (or tag it as Apple Watch). Supplements
+ * reads it to drive its recovery/sleep recommendations.
+ * ============================================================ */
+const HEALTH_KEY = 'patron_health_v1';
+const LEGACY_WHOOP_KEY = 'patron_whoop_data_v1';
+function loadHealth(){
+  try {
+    let r = localStorage.getItem(HEALTH_KEY);
+    if (r) { const d = JSON.parse(r); if (d && d.connected) return d; }
+    r = localStorage.getItem(LEGACY_WHOOP_KEY);
+    if (r) { const d = JSON.parse(r); if (d && d.connected) return Object.assign({ source: 'whoop' }, d); }
+  } catch(e){}
+  return null;
+}
+function saveHealth(d){ try { localStorage.setItem(HEALTH_KEY, JSON.stringify(d)); } catch(e){} }
+function clearHealth(){ try { localStorage.removeItem(HEALTH_KEY); } catch(e){} }
+let health = loadHealth();
+
+/* ---- Live WHOOP sync via the /api serverless OAuth flow (deployed host only) ---- */
+const ON_SERVER = location.protocol === 'http:' || location.protocol === 'https:';
+let whoopStatus = { connected: false, checked: false };
+async function syncWhoop(){
+  if (!ON_SERVER) return;
+  try {
+    const r = await fetch('/api/whoop/data', { cache: 'no-store' });
+    const j = await r.json();
+    whoopStatus = { connected: !!j.connected, checked: true };
+    if (j.connected) {
+      health = { source: 'whoop', connected: true, ts: j.ts || Date.now(), recovery: j.recovery, sleepHours: j.sleepHours, sleepPerf: j.sleepPerf, sleepTargetHours: j.sleepTargetHours || 8, hrv: j.hrv, rhr: j.rhr, strain: j.strain };
+      saveHealth(health);
+    } else if (health && health.source === 'whoop') {
+      clearHealth(); health = null; // token expired/disconnected — drop stale Whoop data
+    }
+  } catch (e) { whoopStatus = { connected: false, checked: true }; }
+  render();
+}
+
+/* ---- Live Fitbit sync — same serverless OAuth pattern as Whoop ---- */
+let fitbitStatus = { connected: false, checked: false };
+async function syncFitbit(){
+  if (!ON_SERVER) return;
+  try {
+    const r = await fetch('/api/fitbit/data', { cache: 'no-store' });
+    const j = await r.json();
+    fitbitStatus = { connected: !!j.connected, checked: true };
+    if (j.connected) {
+      health = { source: 'fitbit', connected: true, ts: j.ts || Date.now(), recovery: j.recovery, sleepHours: j.sleepHours, sleepPerf: j.sleepPerf, sleepTargetHours: j.sleepTargetHours || 8, bedtime: j.bedtime, wakeTime: j.wakeTime, hrv: j.hrv, rhr: j.rhr, strain: j.strain };
+      saveHealth(health);
+    } else if (health && health.source === 'fitbit') {
+      clearHealth(); health = null; // token expired/disconnected — drop stale Fitbit data
+    }
+  } catch (e) { fitbitStatus = { connected: false, checked: true }; }
+  render();
+}
+
+function sourceLabel(s){ return s === 'apple' ? 'Apple Watch' : s === 'manual' ? 'Manual' : s === 'fitbit' ? 'Fitbit' : 'Whoop'; }
+function recTone(r){ if (r == null) return 'muted'; if (r >= 67) return 'good'; if (r >= 34) return 'watch'; return 'low'; }
+function formatHM(h){ if (h == null) return '—'; const hh = Math.floor(h); const mm = Math.round((h - hh) * 60); return hh + 'h ' + String(mm).padStart(2,'0') + 'm'; }
+function formatClock(t){ if (!t) return '—'; const [h, m] = String(t).split(':').map(Number); if (!isFinite(h)) return esc(t); const ap = h < 12 ? 'am' : 'pm'; const h12 = h % 12 === 0 ? 12 : h % 12; return h12 + ':' + String(m || 0).padStart(2,'0') + ap; }
+function ago(ts){ if (!ts) return ''; const m = Math.max(0, Math.round((Date.now() - ts) / 60000)); if (m < 1) return 'just now'; if (m < 60) return m + 'm ago'; return Math.round(m / 60) + 'h ago'; }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ============================================================
+ * Suite-wide profile — collected by the first-run onboarding prompt,
+ * read by the apps (name, weight→water, age/sex/goal/training→supplements…).
+ * ============================================================ */
+const SUITE_PROFILE_KEY = 'patron_profile_v1';
+function loadProfile(){ try { const r = localStorage.getItem(SUITE_PROFILE_KEY); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+function saveProfileObj(p){ try { localStorage.setItem(SUITE_PROFILE_KEY, JSON.stringify(p)); } catch(e){} }
+let profile = loadProfile();
+function firstName(){ return profile && profile.name ? String(profile.name).trim().split(/\s+/)[0] : ''; }
+
+/* ============================================================
+ * UI state
+ * ============================================================ */
+const ui = { modalOpen: false, draftSource: 'manual', profileOpen: false, profileDraft: null };
+
+/* ============================================================
+ * Views
+ * ============================================================ */
+function headerHtml(){
+  const name = firstName();
+  const greeting = name ? 'Welcome back, ' + esc(name) : 'Your dashboard · everything in one place';
+  const chip = profile
+    ? '<button type="button" class="profileChip" data-action="open-profile" title="Edit your profile"><span class="profileAvatar">' + esc((name || '·').charAt(0).toUpperCase()) + '</span>' + esc(name || 'Profile') + '</button>'
+    : '<button type="button" class="profileChip profileChipNew" data-action="open-profile">Set up profile</button>';
+  return '<header class="header"><div><h1 class="title">Vitality</h1><p class="subtitle">' + greeting + '</p></div>'
+    + '<div class="headerControls">' + themeSegHtml() + chip + '</div></header>';
+}
+
+function vitalsTileHtml(){
+  const h = health;
+  if (!h) {
+    return '<section class="vitals">'
+      + '<div class="vitalsHead"><span class="vitalsEyebrow">Today’s vitals</span></div>'
+      + '<div class="vitalsEmpty"><div class="vitalsEmptyTitle">No vitals yet</div>'
+      + '<p class="vitalsEmptyBody">Connect Whoop, link your Apple Watch, or enter recovery &amp; sleep by hand. Your numbers then power the rest of the suite — the supplement recommender reads recovery &amp; sleep automatically.</p>'
+      + '<div class="vitalsFoot"><button type="button" class="btn btn-primary" data-action="open-vitals">Add vitals</button></div></div></section>';
+  }
+  const tone = recTone(h.recovery);
+  const circ = 2 * Math.PI * 56;
+  const ring = '<div class="recRing" data-tone="' + tone + '"><svg viewBox="0 0 132 132" aria-hidden><circle cx="66" cy="66" r="56" class="recTrack"/>'
+    + (h.recovery != null ? '<circle cx="66" cy="66" r="56" class="recFill" style="stroke-dasharray:' + circ + ';stroke-dashoffset:' + (circ * (1 - h.recovery / 100)) + ';"/>' : '')
+    + '</svg><div style="text-align:center"><div class="recNum">' + (h.recovery != null ? Math.round(h.recovery) : '—') + (h.recovery != null ? '<span class="recUnit">%</span>' : '') + '</div><div class="recCap">Recovery</div></div></div>';
+  function row(label, val){ return '<div class="vRow"><span class="vLabel">' + label + '</span><span class="vVal">' + val + '</span></div>'; }
+  const sleepVal = h.sleepHours != null ? formatHM(h.sleepHours) + (h.sleepPerf != null ? '<em>' + Math.round(h.sleepPerf) + '%</em>' : '') : '—';
+  const metrics = '<div class="vMetrics">'
+    + row('Sleep', sleepVal)
+    + (h.bedtime && h.wakeTime ? row('In bed', formatClock(h.bedtime) + ' <em>→</em> ' + formatClock(h.wakeTime)) : '')
+    + row('HRV', h.hrv != null ? Math.round(h.hrv) + '<em>ms</em>' : '—')
+    + row('Resting HR', h.rhr != null ? Math.round(h.rhr) + '<em>bpm</em>' : '—')
+    + '</div>';
+  return '<section class="vitals">'
+    + '<div class="vitalsHead"><span class="vitalsEyebrow">Today’s vitals</span>'
+    + '<span class="srcBadge"><span class="srcDot"></span>' + esc(sourceLabel(h.source)) + '</span></div>'
+    + '<div class="vitalsBody">' + ring + metrics + '</div>'
+    + '<div class="vitalsFoot"><span class="vitalsSync">' + (h.ts ? 'updated ' + ago(h.ts) : '') + '</span>'
+    + '<button type="button" class="btn btn-ghost" data-action="open-vitals">Update vitals</button></div></section>';
+}
+
+/* ---- Live stats read from each app's own localStorage (defensive; tagline if unavailable) ---- */
+function lsGet(key){ try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+function fmtNum(n){ return Math.round(n).toLocaleString('en-US'); }
+function localDateKey(d){ d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function activeDateKey(){ const d = new Date(); if (d.getHours() < 6) d.setDate(d.getDate() - 1); return localDateKey(d); }
+function statFor(file){
+  try {
+    if (file === 'finance.html') { const s = lsGet('finance_standalone_v1'); if (s && Array.isArray(s.accounts) && s.accounts.length) { const nw = s.accounts.reduce((a,x)=>a+(Number(x.amountCHF)||0),0); return { value: 'CHF ' + fmtNum(nw), label: 'net worth' }; } }
+    else if (file === 'supplements.html') { const s = lsGet('supplements_standalone_v1'); if (s && Array.isArray(s.items) && s.items.length) { const tk = (s.taken && s.taken[activeDateKey()]) || {}; const n = s.items.filter(i => tk[i.id]).length; return { value: n + '/' + s.items.length, label: 'taken today' }; } }
+    else if (file === 'water.html') { const s = lsGet('water_standalone_v1'); if (s && s.logs) { const n = s.logs[localDateKey()] || 0; return { value: String(n), label: (n === 1 ? 'drink' : 'drinks') + ' today' }; } }
+    else if (file === 'whoop.html') { if (health && health.recovery != null) return { value: Math.round(health.recovery) + '%', label: 'recovery' }; }
+  } catch (e) {}
+  return null;
+}
+function cardHtml(a){
+  const st = statFor(a.file);
+  const tail = st
+    ? '<div class="cardStat"><span class="cardStatValue">' + esc(st.value) + '</span><span class="cardStatLabel">' + esc(st.label) + '</span></div>'
+    : '<p class="cardTag">' + esc(a.tag) + '</p>';
+  return '<a class="card' + (a.wide ? ' tileWide' : '') + '" href="' + a.file + '">'
+    + '<span class="cardArrow" aria-hidden>↗</span>'
+    + '<div class="cardTop"><span class="cardIcon" aria-hidden>' + a.icon + '</span><span class="cardName">' + esc(a.name) + '</span></div>'
+    + tail + '</a>';
+}
+
+/* ============================================================
+ * Live ticker — collect every metric the suite currently knows
+ * into a scrolling marquee. Each item: short label, value, unit,
+ * a tone, and a small accent sparkline. Accent lines are decorative
+ * (we don't yet log history) except where a real delta exists.
+ * ============================================================ */
+function sparkSvg(seed){
+  // deterministic, gently-varying micro-line ending in a glowing dot
+  const w = 46, h = 16, n = 6, pad = 2;
+  const pts = [];
+  for (let i = 0; i < n; i++){
+    const t = (Math.sin(seed * 1.7 + i * 1.3) + Math.sin(seed * 0.6 + i * 0.7)) / 2; // -1..1, stable
+    const x = pad + (i / (n - 1)) * (w - pad * 2);
+    const y = pad + (1 - (t * 0.5 + 0.5)) * (h - pad * 2);
+    pts.push([x, y]);
+  }
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const last = pts[pts.length - 1];
+  return '<svg class="tiSpark" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden>'
+    + '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>'
+    + '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.1" fill="currentColor" style="filter:drop-shadow(0 0 4px currentColor)"/></svg>';
+}
+function tickerMetrics(){
+  const out = [];
+  const add = (label, value, unit, tone, delta) => out.push({ label, value, unit: unit || '', tone: tone || 'brand', delta: delta || '' });
+  const h = health;
+  if (h){
+    if (h.recovery != null) add('REC', Math.round(h.recovery), '%', recTone(h.recovery));
+    if (h.sleepHours != null){ const hh = Math.floor(h.sleepHours), mm = Math.round((h.sleepHours - hh) * 60); add('SLP', hh + 'h' + String(mm).padStart(2,'0'), '', h.sleepPerf != null ? (h.sleepPerf >= 85 ? 'good' : h.sleepPerf >= 60 ? 'watch' : 'low') : 'brand'); }
+    if (h.strain != null) add('STR', (Math.round(h.strain * 10) / 10).toFixed(1), '', 'brand');
+    if (h.hrv != null) add('HRV', Math.round(h.hrv), 'ms', 'good');
+    if (h.rhr != null) add('RHR', Math.round(h.rhr), 'bpm', 'brand');
+  }
+  try {
+    const fin = lsGet('finance_standalone_v1');
+    if (fin && Array.isArray(fin.accounts) && fin.accounts.length){ const nw = fin.accounts.reduce((a,x)=>a+(Number(x.amountCHF)||0),0); add('NET', 'CHF ' + fmtNum(nw), '', 'good'); }
+    const wat = lsGet('water_standalone_v1');
+    if (wat && wat.logs){ const n = wat.logs[localDateKey()] || 0; add('H2O', String(n), n === 1 ? 'drink' : 'drinks', 'brand'); }
+    const sup = lsGet('supplements_standalone_v1');
+    if (sup && Array.isArray(sup.items) && sup.items.length){ const tk = (sup.taken && sup.taken[activeDateKey()]) || {}; const n = sup.items.filter(i => tk[i.id]).length; add('SUP', n + '/' + sup.items.length, '', n >= sup.items.length ? 'good' : 'brand'); }
+  } catch(e){}
+  return out;
+}
+function tickerHtml(){
+  const items = tickerMetrics();
+  if (!items.length){
+    return '<div class="ticker"><div class="tickerLead"><span class="tickerPulse"></span>Vitality · Live</div>'
+      + '<div class="tickerViewport"><div class="tickerTrack" style="animation:none;padding-left:var(--space-5)">'
+      + '<span class="tickerItem" style="border:0"><span class="tiLabel">No data yet — add vitals to go live</span></span>'
+      + '</div></div></div>';
+  }
+  const chip = (m, i) => '<span class="tickerItem" data-tone="' + m.tone + '">'
+    + '<span class="tiLabel">' + esc(m.label) + '</span>'
+    + '<span class="tiVal">' + esc(m.value) + (m.unit ? '<span class="tiUnit">' + esc(m.unit) + '</span>' : '') + '</span>'
+    + (m.delta ? '<span class="tiDelta">' + esc(m.delta) + '</span>' : '')
+    + sparkSvg(i + 1) + '</span>';
+  const seq = items.map(chip).join('');
+  // duration scales with item count so speed stays constant regardless of how much data we have
+  const dur = Math.max(18, items.length * 6);
+  return '<div class="ticker"><div class="tickerLead"><span class="tickerPulse"></span>Vitality · Live</div>'
+    + '<div class="tickerViewport"><div class="tickerTrack" style="animation-duration:' + dur + 's">'
+    + seq + seq + '</div></div></div>';
+}
+
+/* ---- Daily "did you log it?" reminders (weight + gym), read from each app's storage ---- */
+function loggedWeightToday(){ try { const s = lsGet('progress_standalone_v1'); return !!(s && Array.isArray(s.entries) && s.entries.some(e => e && e.dateKey === localDateKey())); } catch(e){ return false; } }
+function loggedGymToday(){ try { const d = lsGet('po_coach_workout_done'); return !!(d && d[localDateKey()]); } catch(e){ return false; } }
+function remindersHtml(){
+  const items = [];
+  if (!loggedWeightToday()) items.push({ file: 'progress.html', icon: '⚖️', text: 'Log today’s weight' });
+  if (!loggedGymToday()) items.push({ file: 'gym.html', icon: '🏋️', text: 'Log today’s gym' });
+  if (!items.length) return '';
+  return '<div class="reminders" role="status"><span class="remindersLabel">Today</span>'
+    + items.map(r => '<a class="reminderChip" href="' + r.file + '"><span class="reminderDot"></span><span aria-hidden>' + r.icon + '</span> ' + r.text + ' <span class="reminderGo" aria-hidden>→</span></a>').join('')
+    + '</div>';
+}
+function render(){
+  document.getElementById('app').innerHTML =
+    headerHtml() + tickerHtml() + remindersHtml() + '<div class="bento">' + vitalsTileHtml() + APPS.map(cardHtml).join('') + '</div>';
+  renderModal();
+}
+
+/* ============================================================
+ * Vitals modal
+ * ============================================================ */
+function renderModal(){
+  const root = document.getElementById('modalRoot');
+  if (ui.profileOpen) { root.innerHTML = profileModalHtml(); return; }
+  if (!ui.modalOpen) { root.innerHTML = ''; return; }
+  const src = ui.draftSource;
+  const h = (health && health.source === src) ? health : (src !== 'whoop' && health && health.source !== 'whoop') ? health : null;
+  const v = (k) => (h && h[k] != null ? h[k] : '');
+  const pill = (key, emoji, label) => '<button type="button" class="srcPill ' + (src === key ? 'srcPillActive' : '') + '" data-action="src" data-src="' + key + '"><span class="srcEmoji">' + emoji + '</span>' + label + '</button>';
+
+  let bodyHtml;
+  if (src === 'whoop') {
+    if (!ON_SERVER) {
+      bodyHtml = '<p class="panelNote">Live Whoop sync runs on the deployed app (Vercel) with your Whoop API keys. Opened locally, use <strong>Apple Watch</strong> or <strong>Manual</strong> above. Once deployed &amp; configured, a one-tap <em>Connect Whoop</em> appears here. See <strong>WHOOP_SETUP.md</strong>.</p>';
+    } else if (whoopStatus.connected) {
+      bodyHtml = '<p class="panelNote">✓ <strong>Whoop connected.</strong> Recovery, sleep &amp; strain sync automatically and publish across the suite. Tokens are stored server-side, never in the browser.</p>'
+        + '<div class="srcActions"><button type="button" class="btn btn-link spacer" data-action="whoop-disconnect">disconnect Whoop</button><button type="button" class="btn btn-primary" data-action="whoop-sync">Sync now</button></div>';
+    } else {
+      bodyHtml = '<p class="panelNote">Connect your Whoop account once — recovery, sleep &amp; strain then sync automatically and feed your supplement picks. You log in on whoop.com; your tokens stay server-side.</p>'
+        + '<div class="srcActions"><a class="btn btn-primary" href="/api/whoop/login">Connect Whoop</a></div>';
+    }
+  } else if (src === 'fitbit') {
+    if (!ON_SERVER) {
+      bodyHtml = '<p class="panelNote">Live Fitbit sync runs on the deployed app (Vercel) with your Fitbit API keys. Opened locally, use <strong>Apple Watch</strong> or <strong>Manual</strong> above. Once deployed &amp; configured, a one-tap <em>Connect Fitbit</em> appears here. See <strong>FITBIT_SETUP.md</strong>.</p>';
+    } else if (fitbitStatus.connected) {
+      bodyHtml = '<p class="panelNote">✓ <strong>Fitbit connected.</strong> Sleep, HRV, resting HR &amp; your bed/wake times sync automatically across the suite. Tokens are stored server-side, never in the browser.<br><br>Heads-up: Fitbit doesn’t expose a recovery score, so the recovery ring stays blank — everything else fills in.</p>'
+        + '<div class="srcActions"><button type="button" class="btn btn-link spacer" data-action="fitbit-disconnect">disconnect Fitbit</button><button type="button" class="btn btn-primary" data-action="fitbit-sync">Sync now</button></div>';
+    } else {
+      bodyHtml = '<p class="panelNote">Connect your Fitbit account once — sleep, HRV, resting HR &amp; bed/wake times then sync automatically. You log in on fitbit.com; your tokens stay server-side. (Fitbit has no recovery score, so that ring stays blank.)</p>'
+        + '<div class="srcActions"><a class="btn btn-primary" href="/api/fitbit/login">Connect Fitbit</a></div>';
+    }
+  } else {
+    bodyHtml = '<div class="fieldGrid">'
+      + '<div class="field"><label class="fieldLabel" for="f-rec">Recovery / readiness %</label><input id="f-rec" class="fieldInput" type="number" min="0" max="100" inputmode="numeric" placeholder="—" value="' + esc(v('recovery')) + '" /></div>'
+      + '<div class="field"><label class="fieldLabel" for="f-sleep">Sleep (hours)</label><input id="f-sleep" class="fieldInput" type="number" min="0" max="24" step="0.1" inputmode="decimal" placeholder="7.5" value="' + esc(v('sleepHours')) + '" /></div>'
+      + '<div class="field"><label class="fieldLabel" for="f-bed">Bedtime</label><input id="f-bed" class="fieldInput" type="time" value="' + esc(v('bedtime')) + '" /></div>'
+      + '<div class="field"><label class="fieldLabel" for="f-wake">Wake time</label><input id="f-wake" class="fieldInput" type="time" value="' + esc(v('wakeTime')) + '" /></div>'
+      + '<div class="field"><label class="fieldLabel" for="f-hrv">HRV (ms)</label><input id="f-hrv" class="fieldInput" type="number" min="0" max="300" inputmode="numeric" placeholder="—" value="' + esc(v('hrv')) + '" /></div>'
+      + '<div class="field"><label class="fieldLabel" for="f-rhr">Resting HR (bpm)</label><input id="f-rhr" class="fieldInput" type="number" min="20" max="150" inputmode="numeric" placeholder="—" value="' + esc(v('rhr')) + '" /></div>'
+      + '<div class="field fieldFull"><label class="fieldLabel" for="f-target">Sleep target (hours)</label><input id="f-target" class="fieldInput" type="number" min="4" max="12" step="0.5" inputmode="decimal" placeholder="8" value="' + esc(h && h.sleepTargetHours != null ? h.sleepTargetHours : 8) + '" /></div>'
+      + '</div>'
+      + '<p class="howtoFoot" style="margin-top:var(--space-3)">Fill <strong>Bedtime</strong> + <strong>Wake time</strong> and we’ll work out hours asleep for you — or just type the hours directly.</p>';
+    if (src === 'apple') bodyHtml = '<div class="howto"><div class="howtoTitle">⌚ Got an Apple Watch? Here’s the 20-second way</div>'
+      + '<ol class="howtoSteps">'
+      + '<li>Open the <strong>Health</strong> app on your iPhone.</li>'
+      + '<li>Tap <strong>Sleep</strong> and note today’s <strong>bedtime</strong> &amp; <strong>wake time</strong>, then these three numbers:<div class="howtoChips"><span class="howtoChip">Heart Rate Variability</span><span class="howtoChip">Resting Heart Rate</span><span class="howtoChip">Time Asleep</span></div></li>'
+      + '<li>Type them into the fields below and hit <strong>Save vitals</strong>.</li>'
+      + '</ol>'
+      + '<p class="howtoFoot">Apple won’t let a website read Health data directly, so this quick copy keeps it private — nothing leaves your phone. Saved as “Apple Watch.”</p></div>'
+      + bodyHtml;
+    else bodyHtml += '<p class="panelNote">Enter whatever you track. Recovery and sleep are what drive the supplement recommendations — the rest is optional.</p>';
+  }
+  const canClear = !!health;
+  root.innerHTML = '<div class="overlay" data-action="close-vitals"><div class="panel" data-stop="1">'
+    + '<div class="panelHead"><div><div class="panelEyebrow">Health source</div><h2 class="panelTitle">Today’s vitals</h2></div><button type="button" class="panelClose" data-action="close-vitals">×</button></div>'
+    + '<div class="srcPills">' + pill('whoop','🔋','Whoop') + pill('fitbit','💠','Fitbit') + pill('apple','⌚','Apple Watch') + pill('manual','✍️','Manual') + '</div>'
+    + bodyHtml
+    + '<div class="panelActions">' + (canClear ? '<button type="button" class="btn btn-link spacer" data-action="clear-vitals">clear vitals</button>' : '')
+    + '<button type="button" class="btn btn-ghost" data-action="close-vitals">Cancel</button>'
+    + (src !== 'whoop' && src !== 'fitbit' ? '<button type="button" class="btn btn-primary" data-action="save-vitals">Save vitals</button>' : '')
+    + '</div></div></div>';
+}
+
+function openVitals(){
+  ui.modalOpen = true;
+  ui.draftSource = (health && health.source) ? health.source : 'manual';
+  if (ui.draftSource === 'whoop') ui.draftSource = 'whoop';
+  renderModal();
+}
+function saveVitals(){
+  const num = (id) => { const el = document.getElementById(id); if (!el || el.value === '') return null; const n = Number(el.value); return isFinite(n) ? n : null; };
+  const str = (id) => { const el = document.getElementById(id); return el && el.value ? el.value : null; };
+  const recovery = num('f-rec');
+  const bedtime = str('f-bed');
+  const wakeTime = str('f-wake');
+  // Hours-asleep priority: explicit field → otherwise derive from bed/wake times (wake assumed next morning if earlier than bed).
+  let sleepHours = num('f-sleep');
+  if (sleepHours == null && bedtime && wakeTime){
+    const [bh, bm] = bedtime.split(':').map(Number);
+    const [wh, wm] = wakeTime.split(':').map(Number);
+    let mins = (wh * 60 + wm) - (bh * 60 + bm);
+    if (mins <= 0) mins += 24 * 60;
+    sleepHours = Math.round((mins / 60) * 10) / 10;
+  }
+  const hrv = num('f-hrv');
+  const rhr = num('f-rhr');
+  const target = num('f-target') || 8;
+  if (recovery == null && sleepHours == null && hrv == null && rhr == null) { alert('Enter at least one value (recovery, sleep, or bed + wake times).'); return; }
+  const sleepPerf = sleepHours != null ? Math.round(Math.min(100, (sleepHours / target) * 100)) : null;
+  health = { source: ui.draftSource, connected: true, ts: Date.now(), recovery, sleepHours, sleepPerf, sleepTargetHours: target, bedtime, wakeTime, hrv, rhr, strain: null };
+  saveHealth(health);
+  ui.modalOpen = false;
+  render();
+}
+
+/* ============================================================
+ * Events
+ * ============================================================ */
+/* ============================================================
+ * Onboarding / profile modal
+ * ============================================================ */
+function draftFromProfile(){
+  const p = profile || {};
+  const units = p.units === 'imperial' ? 'imperial' : 'metric';
+  const h = (p.heightCm == null || p.heightCm === '') ? '' : (units === 'imperial' ? Math.round(p.heightCm / 2.54) : Math.round(p.heightCm));
+  const w = (p.weightKg == null || p.weightKg === '') ? '' : (units === 'imperial' ? Math.round(p.weightKg / 0.45359237) : p.weightKg);
+  return {
+    name: p.name || '', age: p.age != null ? String(p.age) : '', sex: p.sex || '', units,
+    height: h === '' ? '' : String(h), weight: w === '' ? '' : String(w),
+    workouts: p.workoutsPerWeek != null && p.workoutsPerWeek !== '' ? String(p.workoutsPerWeek) : '',
+    level: p.gymLevel || '', goal: p.goal || '',
+    caffeine: p.caffeineMgPerDay != null && p.caffeineMgPerDay !== '' ? String(p.caffeineMgPerDay) : '',
+  };
+}
+function openProfile(){ ui.profileDraft = draftFromProfile(); ui.profileOpen = true; ui.modalOpen = false; renderModal(); }
+function profileModalHtml(){
+  const d = ui.profileDraft || draftFromProfile();
+  const imperial = d.units === 'imperial';
+  const isEdit = !!profile;
+  const sel = (key, opts) => '<select class="fieldInput" data-pf="' + key + '">'
+    + '<option value=""' + (d[key] === '' ? ' selected' : '') + '>—</option>'
+    + opts.map(o => '<option value="' + o[0] + '"' + (d[key] === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>';
+  const inp = (key, type, ph, attrs) => '<input class="fieldInput" type="' + type + '" data-pf="' + key + '" placeholder="' + esc(ph) + '" value="' + esc(d[key]) + '" ' + (attrs || '') + ' />';
+  const field = (label, inner) => '<div class="field"><label class="fieldLabel">' + label + '</label>' + inner + '</div>';
+  const body = '<div class="fieldGrid">'
+    + '<div class="field fieldFull"><label class="fieldLabel">Name</label>' + inp('name', 'text', 'Your name', 'autocomplete="name"') + '</div>'
+    + field('Age', inp('age', 'number', '—', 'min="0" max="120" inputmode="numeric"'))
+    + field('Sex', sel('sex', [['M', 'Male'], ['F', 'Female']]))
+    + field('Units', sel('units', [['metric', 'Metric (cm/kg)'], ['imperial', 'Imperial (in/lb)']]))
+    + field('Height (' + (imperial ? 'in' : 'cm') + ')', inp('height', 'number', imperial ? '70' : '178', 'min="0" inputmode="numeric"'))
+    + field('Weight (' + (imperial ? 'lb' : 'kg') + ')', inp('weight', 'number', imperial ? '170' : '77', 'min="0" step="0.1" inputmode="decimal"'))
+    + field('Workouts / week', inp('workouts', 'number', '4', 'min="0" max="14" inputmode="numeric"'))
+    + field('Training level', sel('level', [['beginner', 'Beginner'], ['intermediate', 'Intermediate'], ['advanced', 'Advanced']]))
+    + field('Primary goal', sel('goal', [['cut', 'Cut'], ['bulk', 'Bulk'], ['recomp', 'Recomp'], ['maintain', 'Maintain'], ['general_health', 'General health']]))
+    + field('Caffeine mg/day', inp('caffeine', 'number', 'optional', 'min="0" max="1000" step="10" inputmode="numeric"'))
+    + '</div>';
+  return '<div class="overlay" data-action="close-profile"><div class="panel" data-stop="1">'
+    + '<div class="panelHead"><div><div class="panelEyebrow">' + (isEdit ? 'Your profile' : 'Welcome') + '</div><h2 class="panelTitle">' + (isEdit ? 'Edit profile' : 'Set up your dashboard') + '</h2></div>'
+    + (isEdit ? '<button type="button" class="panelClose" data-action="close-profile">×</button>' : '') + '</div>'
+    + (isEdit ? '' : '<p class="panelNote" style="border-color:var(--brand-line)">Tell the suite a little about you — your name personalizes it, and your stats pre-fill the apps (weight → Water, age/goal/training → Supplements). Stored only in this browser; edit anytime.</p>')
+    + body
+    + '<div class="panelActions"><button type="button" class="btn ' + (isEdit ? 'btn-ghost' : 'btn-link') + '" data-action="close-profile">' + (isEdit ? 'Cancel' : 'Skip for now') + '</button>'
+    + '<button type="button" class="btn btn-primary" data-action="save-profile">' + (isEdit ? 'Save' : 'Save &amp; start') + '</button></div></div></div>';
+}
+function saveProfile(){
+  const d = ui.profileDraft || {};
+  const name = (d.name || '').trim();
+  if (!name) { alert('Add your name to continue (or Skip for now).'); return; }
+  const units = d.units === 'imperial' ? 'imperial' : 'metric';
+  const num = (x) => { if (x === '' || x == null) return ''; const n = Number(x); return isFinite(n) ? n : ''; };
+  const hRaw = num(d.height), wRaw = num(d.weight);
+  const heightCm = hRaw === '' ? '' : (units === 'imperial' ? Math.round(hRaw * 2.54) : Math.round(hRaw));
+  const weightKg = wRaw === '' ? '' : (units === 'imperial' ? Math.round(wRaw * 0.45359237 * 10) / 10 : wRaw);
+  profile = {
+    name, age: num(d.age), sex: d.sex || '', heightCm, weightKg, units,
+    workoutsPerWeek: num(d.workouts), gymLevel: d.level || '', goal: d.goal || '',
+    caffeineMgPerDay: num(d.caffeine), onboarded: true, ts: Date.now(),
+  };
+  saveProfileObj(profile);
+  ui.profileOpen = false;
+  render();
+}
+
+document.addEventListener('click', e => {
+  const stop = e.target.closest('[data-stop]');
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  if (action === 'theme') { applyTheme(btn.getAttribute('data-theme')); return; }
+  if (action === 'open-vitals') { openVitals(); return; }
+  if (action === 'open-profile') { openProfile(); return; }
+  if (action === 'close-profile') { if (!stop || btn.tagName === 'BUTTON') { ui.profileOpen = false; renderModal(); } return; }
+  if (action === 'save-profile') { saveProfile(); return; }
+  if (action === 'close-vitals') { if (!stop || btn.tagName === 'BUTTON') { ui.modalOpen = false; renderModal(); } return; }
+  if (action === 'src') { ui.draftSource = btn.getAttribute('data-src'); renderModal(); return; }
+  if (action === 'save-vitals') { saveVitals(); return; }
+  if (action === 'clear-vitals') { if (confirm('Clear today’s vitals from the suite?')) { clearHealth(); health = null; ui.modalOpen = false; render(); } return; }
+  if (action === 'whoop-sync') { syncWhoop(); return; }
+  if (action === 'whoop-disconnect') {
+    fetch('/api/whoop/logout').catch(()=>{}).then(() => {
+      whoopStatus = { connected: false, checked: true };
+      if (health && health.source === 'whoop') { clearHealth(); health = null; }
+      ui.modalOpen = false; render();
+    });
+    return;
+  }
+  if (action === 'fitbit-sync') { syncFitbit(); return; }
+  if (action === 'fitbit-disconnect') {
+    fetch('/api/fitbit/logout').catch(()=>{}).then(() => {
+      fitbitStatus = { connected: false, checked: true };
+      if (health && health.source === 'fitbit') { clearHealth(); health = null; }
+      ui.modalOpen = false; render();
+    });
+    return;
+  }
+});
+
+// Profile-form fields → draft (text/number on input keeps caret; selects on change; units re-renders to relabel).
+// Lazy-init the draft so first-run typing is never dropped.
+document.addEventListener('input', e => {
+  const t = e.target; if (!(t && t.dataset && t.dataset.pf)) return;
+  if (!ui.profileDraft) ui.profileDraft = draftFromProfile();
+  ui.profileDraft[t.dataset.pf] = t.value;
+});
+document.addEventListener('change', e => {
+  const t = e.target; if (!(t && t.dataset && t.dataset.pf)) return;
+  if (!ui.profileDraft) ui.profileDraft = draftFromProfile();
+  if (t.dataset.pf === 'units') {
+    // Switching units relabels AND converts whatever's already typed, so the numbers stay sensible.
+    const d = ui.profileDraft, toImp = t.value === 'imperial';
+    const conv = (v, f, dp) => (v === '' || v == null || !isFinite(Number(v))) ? v : String(Math.round(Number(v) * f * (dp ? 10 : 1)) / (dp ? 10 : 1));
+    if (toImp) { d.height = conv(d.height, 1/2.54, 0); d.weight = conv(d.weight, 1/0.45359237, 0); }
+    else       { d.height = conv(d.height, 2.54, 0);   d.weight = conv(d.weight, 0.45359237, 1); }
+    d.units = t.value;
+    renderModal();
+    return;
+  }
+  ui.profileDraft[t.dataset.pf] = t.value;
+});
+
+// Reflect theme / vitals changes made in sibling tabs.
+window.addEventListener('storage', e => {
+  if (e.key === 'patron_theme' && e.newValue) { applyTheme(e.newValue); return; }
+  if (e.key === HEALTH_KEY || e.key === LEGACY_WHOOP_KEY || e.key === null) { health = loadHealth(); render(); }
+});
+
+if (!profile) { ui.profileDraft = draftFromProfile(); ui.profileOpen = true; } // first run → onboarding prompt (init draft so typing is captured)
+applyTheme(currentTheme);
+
+// On a deployed host: pick up the OAuth return + pull the latest Whoop / Fitbit vitals.
+(function bootVitals(){
+  if (!ON_SERVER) return;
+  try {
+    const q = new URLSearchParams(location.search);
+    const w = q.get('whoop'), f = q.get('fitbit');
+    if (w || f) {
+      history.replaceState(null, '', location.pathname);
+      if (w === 'error' || w === 'denied') alert('Whoop connection didn’t complete. Check your WHOOP_CLIENT_ID / SECRET and the registered redirect URL (see WHOOP_SETUP.md), then try again.');
+      if (f === 'error' || f === 'denied') alert('Fitbit connection didn’t complete. Check your FITBIT_CLIENT_ID / SECRET and the registered redirect URL (see FITBIT_SETUP.md), then try again.');
+    }
+  } catch (e) {}
+  syncWhoop();
+  syncFitbit();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="db.js?v=11"></script>
+<script src="cloud-sync.js?v=11"></script>
+</body>
+</html>

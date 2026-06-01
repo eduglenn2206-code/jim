@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0C0C12" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Patron" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+
+<!-- 1. CHANGE THE TITLE to your page's name -->
+<title>New Page · Vitality</title>
+
+<!-- Fonts used by the design system (keep as-is) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- Sets the saved theme before paint so there's no flash (keep as-is) -->
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("patron_theme")||"nocturne");}catch(e){document.documentElement.setAttribute("data-theme","nocturne");}</script>
+
+<!-- The shared design system. This one line gives you all the
+     colors, fonts, themes, buttons, cards, modals and form styles. -->
+<link rel="stylesheet" href="theme.css" />
+
+<!-- Add your page-specific styles here (optional). Always reuse the
+     tokens (var(--brand), var(--space-4), etc.) so you stay on-brand. -->
+<style>
+  /* example: a simple responsive grid for your content cards */
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+</style>
+</head>
+<body>
+<main class="page grain-overlay">
+  <div class="shell">
+
+    <!-- HEADER: title on the left, back-link + theme switcher on the right.
+         #themeSeg is filled in by theme.js at the bottom of this file. -->
+    <header class="header">
+      <div>
+        <!-- 2. CHANGE the title + subtitle -->
+        <h1 class="title">New Page</h1>
+        <p class="subtitle">one-line tagline</p>
+      </div>
+      <div class="headerControls">
+        <a class="backLink" href="index.html">← Dashboard</a>
+        <span id="themeSeg"></span>
+      </div>
+    </header>
+
+    <!-- 3. BUILD YOUR PAGE HERE. Use the shared classes:
+         .card  .btn .btn-primary .btn-ghost  .fieldInput  etc. -->
+    <div class="grid">
+      <section class="card">
+        <span class="cardName">Example card</span>
+        <p class="cardTag">Replace this with your content. It already matches the suite.</p>
+        <div class="cardStat">
+          <span class="cardStatValue">0</span>
+          <span class="cardStatLabel">your metric</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="cardName">Buttons</span>
+        <p class="cardTag">The standard button styles:</p>
+        <div style="display:flex; gap:var(--space-2); flex-wrap:wrap;">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-ghost">Ghost</button>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</main>
+
+<!-- Shared theme engine — wires up the switcher + remembers the choice. -->
+<script src="theme.js"></script>
+<script>
+  // Render the theme switcher into the header.
+  document.getElementById('themeSeg').innerHTML = Patron.switcherHtml();
+
+  /* ---- Your page's JavaScript goes here. ----
+     Tip: persist data the same way the other pages do, with a
+     uniquely-named localStorage key, e.g. 'mypage_standalone_v1'. */
+</script>
+</body>
+</html>
