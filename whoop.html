@@ -97,7 +97,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .grain-overlay { position: relative; }
 .grain-overlay::after { content:''; position: fixed; inset:0; pointer-events:none; z-index:1; opacity: var(--grain-opacity); mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); background-size: 200px 200px; }
 
-.page { position: relative; min-height: 100dvh; background: var(--bg); color: var(--fg); padding: var(--space-8) var(--space-5) var(--space-16); isolation: isolate; }
+.page { position: relative; min-height: 100dvh; background: var(--bg); color: var(--fg); padding: var(--space-12) var(--space-5) var(--space-16); isolation: isolate; }
 .page::before { content:''; position: absolute; inset:0; pointer-events:none; z-index:-1; background: radial-gradient(58% 42% at 82% 6%, var(--glow-1), transparent 70%), radial-gradient(48% 38% at 12% 92%, var(--glow-2), transparent 72%); }
 .shell { max-width: 980px; margin: 0 auto; }
 
