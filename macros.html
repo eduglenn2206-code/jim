@@ -59,6 +59,11 @@
   .xBtn { background:transparent; border:1px solid var(--border); color:var(--muted); width:26px; height:26px; border-radius:50%; cursor:pointer; flex-shrink:0; }
   .xBtn:hover { color: var(--neg); border-color: var(--neg-line); }
   .sectionTitle { font-family: var(--font-display); font-weight:600; font-size: var(--text-lg); margin: var(--space-8) 0 0; }
+
+  .macroInputGrid { display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+  @media (max-width: 560px) { .macroInputGrid { grid-template-columns: repeat(2, 1fr); } }
+  .macroInputField { display:flex; flex-direction:column; gap:6px; }
+  .macroInputLabel { font-family: var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -171,6 +176,17 @@ function resultsInner(){
     + '<button class="btn btn-primary" data-add="' + i + '">Add</button></div></div>').join('');
 }
 
+function addMacrosHtml(){
+  return '<h2 class="sectionTitle">Add macros</h2>'
+    + '<div class="macroInputGrid">'
+    + '<div class="macroInputField"><label class="macroInputLabel" for="m-cal">Calories</label><input class="fieldInput" id="m-cal" type="number" min="0" placeholder="kcal" inputmode="numeric" /></div>'
+    + '<div class="macroInputField"><label class="macroInputLabel" for="m-p">Protein</label><input class="fieldInput" id="m-p" type="number" min="0" step="0.1" placeholder="g" inputmode="decimal" /></div>'
+    + '<div class="macroInputField"><label class="macroInputLabel" for="m-f">Fat</label><input class="fieldInput" id="m-f" type="number" min="0" step="0.1" placeholder="g" inputmode="decimal" /></div>'
+    + '<div class="macroInputField"><label class="macroInputLabel" for="m-c">Carbs</label><input class="fieldInput" id="m-c" type="number" min="0" step="0.1" placeholder="g" inputmode="decimal" /></div>'
+    + '</div>'
+    + '<button class="btn btn-primary" style="margin-top:var(--space-4)" id="addMacrosBtn">Add</button>';
+}
+
 function searchHtml(){
   return '<h2 class="sectionTitle">Add food</h2>'
     + '<div class="search"><input class="fieldInput" id="q" type="text" placeholder="Search foods (e.g. chicken, rice, banana)" value="' + esc(query) + '" autocomplete="off" /></div>'
@@ -181,7 +197,7 @@ function logHtml(){
   const log = todaysLog();
   if (!log.length) return '<h2 class="sectionTitle">Logged today</h2><p class="empty">Nothing logged yet.</p>';
   const rows = log.map((e, i) =>
-    '<div class="logRow"><div><div class="foodName">' + esc(e.name) + ' <span class="meta">' + e.grams + 'g</span></div>'
+    '<div class="logRow"><div><div class="foodName">' + esc(e.name) + (e.manual ? '' : ' <span class="meta">' + e.grams + 'g</span>') + '</div>'
     + '<div class="nums">' + round(e.cal) + ' kcal · ' + round(e.p) + 'P / ' + round(e.c) + 'C / ' + round(e.f) + 'F</div></div>'
     + '<button class="xBtn" data-del="' + i + '" title="Remove">×</button></div>').join('');
   return '<h2 class="sectionTitle">Logged today</h2><div class="logList">' + rows + '</div>';
@@ -194,7 +210,7 @@ function headerHtml(){
 
 function render(){
   document.getElementById('app').innerHTML =
-    headerHtml() + summaryHtml() + searchHtml() + logHtml();
+    headerHtml() + summaryHtml() + addMacrosHtml() + searchHtml() + logHtml();
   document.getElementById('themeSeg').innerHTML = Patron.switcherHtml();
 }
 
@@ -214,6 +230,18 @@ document.addEventListener('input', e => {
 });
 
 document.addEventListener('click', e => {
+  if (e.target.id === 'addMacrosBtn') {
+    const cal = Number(document.getElementById('m-cal').value);
+    const p   = Number(document.getElementById('m-p').value)  || 0;
+    const fat = Number(document.getElementById('m-f').value)  || 0;
+    const c   = Number(document.getElementById('m-c').value)  || 0;
+    if (!isFinite(cal) || cal <= 0) { alert('Enter at least a calorie amount.'); return; }
+    const log = todaysLog();
+    log.push({ name: 'Custom macros', cal, p, c, f: fat, manual: true });
+    setTodaysLog(log);
+    render();
+    return;
+  }
   const add = e.target.closest('[data-add]');
   if (add) {
     const f = matches[Number(add.getAttribute('data-add'))];
