@@ -597,6 +597,38 @@ img, video, canvas, svg { max-width: 100%; }
   -webkit-tap-highlight-color: transparent;
 }
 .po-hist-del:hover { color: var(--bad); }
+.po-hist-row { grid-template-columns: 60px 1fr auto auto; }
+.po-hist-edit {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-3); font-size: 12px; font-family: var(--font-body);
+  padding: 3px 10px; border-radius: 20px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.po-hist-edit:hover { color: var(--text-1); border-color: var(--accent); }
+.po-hist-edit-row {
+  display: grid; grid-template-columns: 60px 1fr auto auto; gap: 10px;
+  padding: 10px 4px; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.po-hist-edit-row:last-child { border-bottom: none; }
+.po-hist-edit-inputs { display: flex; gap: 6px; align-items: center; }
+.po-hist-edit-inp {
+  width: 68px; background: rgba(0,0,0,.3);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text-1); font-family: var(--font-mono); font-size: 13px;
+  padding: 5px 8px; outline: none;
+}
+.po-hist-edit-inp:focus { border-color: var(--accent); }
+.po-hist-edit-lbl { font-size: 11px; color: var(--text-3); }
+.po-hist-save {
+  background: var(--accent); border: none; color: #042a1c;
+  font-family: var(--font-body); font-weight: 700; font-size: 12px;
+  padding: 5px 12px; border-radius: 20px; cursor: pointer;
+}
+.po-hist-cancel {
+  background: transparent; border: none; color: var(--text-4);
+  font-size: 16px; cursor: pointer; padding: 4px 8px;
+}
 
 /* ----- Modals ----- */
 .po-modal-bg {
@@ -2053,38 +2085,70 @@ img, video, canvas, svg { max-width: 100%; }
       + '<path class="po-spark-fill" d="' + fillPath + '"/>'
       + '<path class="po-spark-line" d="' + linePath + '"/>';
   }
+  let histEditIdx = null;
   function renderHistory() {
     const wrap = $('historyCard');
     const ex = getCurrentEx();
     const logs = ex ? getLogs().slice().reverse() : [];
     if (!logs.length) {
       wrap.innerHTML = '<div class="po-empty">No logs yet.</div>';
+      histEditIdx = null;
       return;
     }
     wrap.innerHTML = logs.slice(0, 12).map((l, i) => {
       const d = new Date(l.date);
       const dStr = (d.getMonth() + 1) + '/' + d.getDate();
+      const realIdx = logs.length - 1 - i;
+      if (histEditIdx === realIdx) {
+        const wInp = ex.bw ? '' : '<input class="po-hist-edit-inp" id="heW" type="number" step="0.5" value="' + l.weight + '" /><span class="po-hist-edit-lbl">' + unit() + '</span>';
+        return '<div class="po-hist-edit-row">'
+          + '<div class="po-hist-date">' + dStr + '</div>'
+          + '<div class="po-hist-edit-inputs">' + wInp + '<input class="po-hist-edit-inp" id="heR" type="number" step="1" value="' + l.reps + '" /><span class="po-hist-edit-lbl">reps</span></div>'
+          + '<button class="po-hist-save" data-editact="save" data-idx="' + realIdx + '">Save</button>'
+          + '<button class="po-hist-cancel" data-editact="cancel">×</button>'
+          + '</div>';
+      }
       const setStr = ex.bw ? (l.reps + ' reps') : (l.weight + unit() + ' × ' + l.reps);
-      const realIdx = logs.length - 1 - i; // since we reversed
       return '<div class="po-hist-row">'
         + '<div class="po-hist-date">' + dStr + '</div>'
         + '<div class="po-hist-set">' + setStr + '</div>'
+        + '<button class="po-hist-edit" data-editact="edit" data-idx="' + realIdx + '">Edit</button>'
         + '<button class="po-hist-del" data-idx="' + realIdx + '" aria-label="Delete">×</button>'
         + '</div>';
     }).join('');
+    wrap.querySelectorAll('[data-editact]').forEach(b => {
+      b.addEventListener('click', () => {
+        const act = b.dataset.editact;
+        const idx = parseInt(b.dataset.idx, 10);
+        const arr = state.logs[state.currentEx] || [];
+        if (act === 'edit') { histEditIdx = idx; renderHistory(); return; }
+        if (act === 'cancel') { histEditIdx = null; renderHistory(); return; }
+        if (act === 'save') {
+          const wEl = $('heW'), rEl = $('heR');
+          const newReps = parseInt(rEl ? rEl.value : 0, 10);
+          const newWeight = ex.bw ? arr[idx].weight : parseFloat(wEl ? wEl.value : 0);
+          if (!isFinite(newReps) || newReps < 1) return;
+          arr[idx] = { ...arr[idx], reps: newReps, weight: isFinite(newWeight) ? newWeight : arr[idx].weight };
+          state.logs[state.currentEx] = arr;
+          histEditIdx = null;
+          saveState(); renderAll();
+          return;
+        }
+      });
+    });
     wrap.querySelectorAll('.po-hist-del').forEach(b => {
       b.addEventListener('click', () => {
         if (!confirm('Delete this log?')) return;
         const realIdx = parseInt(b.dataset.idx, 10);
         const arr = state.logs[state.currentEx] || [];
-        // realIdx is index in REVERSED list; map back to original
-        const origIdx = arr.length - 1 - realIdx;
-        arr.splice(origIdx, 1);
+        arr.splice(realIdx, 1);
         if (!arr.length) delete state.logs[state.currentEx];
         else state.logs[state.currentEx] = arr;
+        histEditIdx = null;
         saveState(); renderAll();
       });
     });
+    const heW = $('heW'); if (heW) heW.focus();
   }
   // Compute today's split from state.splitRotation + state.splitAnchor.
   // Returns the rotation entry name (e.g. "Push" or "Rest") AND the index.

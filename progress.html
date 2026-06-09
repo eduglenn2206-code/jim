@@ -229,6 +229,23 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-inter),-apple-s
 .themeBtnActive{background:var(--brand-soft)}
 .themeBtnActive .themeSwatch{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--brand)}
 .headerRow{flex-wrap:wrap;gap:var(--space-3)}
+/* Weight history list */
+.histSection{margin-bottom:var(--space-6)}
+.histRow{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border)}
+.histRow:last-child{border-bottom:0}
+.histDate{font-family:var(--font-mono),ui-monospace,monospace;font-size:11px;letter-spacing:.06em;color:var(--muted);flex-shrink:0;width:68px}
+.histVal{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;flex:1}
+.histBtns{display:flex;gap:6px;flex-shrink:0}
+.histBtn{appearance:none;background:transparent;border:1px solid var(--border-strong);color:var(--muted-strong);font-family:inherit;font-size:11px;padding:4px 11px;border-radius:var(--radius-pill);cursor:pointer;transition:color var(--duration),border-color var(--duration)}
+.histBtn:hover{color:var(--fg);border-color:var(--mint)}
+.histBtn.del:hover{color:var(--red,#f87171);border-color:var(--red,#f87171)}
+.histEditRow{display:flex;align-items:center;gap:8px;padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border)}
+.histEditRow:last-child{border-bottom:0}
+.histEditDate{font-family:var(--font-mono),ui-monospace,monospace;font-size:11px;letter-spacing:.06em;color:var(--muted);flex-shrink:0;width:68px}
+.histInput{flex:1;appearance:none;background:rgba(0,0,0,.3);border:1px solid var(--border-strong);border-radius:var(--radius-md);color:var(--fg);font-family:inherit;font-size:14px;padding:7px 10px;outline:none;min-width:0}
+.histInput:focus{border-color:var(--mint)}
+.histSave{appearance:none;background:var(--mint);border:0;color:#042a1c;font-family:inherit;font-weight:600;font-size:12px;padding:7px 14px;border-radius:var(--radius-pill);cursor:pointer;flex-shrink:0}
+.histCancel{appearance:none;background:transparent;border:1px solid var(--border-strong);color:var(--muted-strong);font-family:inherit;font-size:12px;padding:7px 14px;border-radius:var(--radius-pill);cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -283,7 +300,7 @@ function loadPhotos(){try{const r=localStorage.getItem(PHOTOS);return r?JSON.par
 function savePhotos(){try{localStorage.setItem(PHOTOS,JSON.stringify(photos));}catch{} if(window.PatronDB&&PatronDB.isCloud())PatronDB.set('patron-progress-photos',photos);}
 let state=load();
 let photos=loadPhotos();
-const ui={draft:'',editing:false,error:null,photosOpen:false,viewerId:null,compareId:null,confirmDelete:false};
+const ui={draft:'',editing:false,error:null,editKey:null,editDraft:'',editError:null,photosOpen:false,viewerId:null,compareId:null,confirmDelete:false};
 
 /* Derived */
 function sortedEntries(){return state.entries.slice().sort((a,b)=>a.dateKey.localeCompare(b.dateKey));}
@@ -300,6 +317,41 @@ function saveWeight(){
 }
 function startEdit(){ui.editing=true;ui.error=null;const t=todayEntry();ui.draft=t?fmtDisp(t.weightKg,state.units):'';render();}
 function changeUnits(u){if(ui.draft){const p=parseFloat(ui.draft);if(isFinite(p)){const kg=displayToKg(p,state.units);ui.draft=kgToDisplay(kg,u).toFixed(1);}}state.units=u;save();render();}
+function startEditEntry(key){ui.editKey=key;const e=state.entries.find(x=>x.dateKey===key);ui.editDraft=e?fmtDisp(e.weightKg,state.units):'';ui.editError=null;render();}
+function saveEditEntry(){const parsed=parseFloat(ui.editDraft);if(!isFinite(parsed)||parsed<=0){ui.editError='enter a valid weight';render();return;}const kg=displayToKg(parsed,state.units);state.entries=state.entries.map(e=>e.dateKey===ui.editKey?{dateKey:e.dateKey,weightKg:kg}:e);ui.editKey=null;ui.editDraft='';ui.editError=null;save();render();}
+function cancelEditEntry(){ui.editKey=null;ui.editDraft='';ui.editError=null;render();}
+function deleteEntry(key){state.entries=state.entries.filter(e=>e.dateKey!==key);save();render();}
+
+/* ===================== Render: history ===================== */
+function historyHtml(){
+  const u=state.units;
+  const all=sortedEntries().slice().reverse();
+  if(!all.length)return '';
+  const rows=all.map(e=>{
+    const d=parseKey(e.dateKey);
+    const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const label=mons[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear().toString().slice(2);
+    if(ui.editKey===e.dateKey){
+      return '<div class="histEditRow">'
+        +'<span class="histEditDate">'+esc(label)+'</span>'
+        +'<input class="histInput" id="histInput" type="number" step="0.1" inputmode="decimal" value="'+esc(ui.editDraft)+'" />'
+        +(ui.editError?'':''  )
+        +'<button class="histSave" data-act="save-entry">Save</button>'
+        +'<button class="histCancel" data-act="cancel-entry">×</button>'
+        +'</div>';
+    }
+    return '<div class="histRow">'
+      +'<span class="histDate">'+esc(label)+'</span>'
+      +'<span class="histVal">'+fmtDisp(e.weightKg,u)+' '+u+'</span>'
+      +'<div class="histBtns">'
+        +'<button class="histBtn" data-act="edit-entry" data-key="'+esc(e.dateKey)+'">Edit</button>'
+        +'<button class="histBtn del" data-act="delete-entry" data-key="'+esc(e.dateKey)+'">Del</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  return '<section class="histSection"><div class="sectionEyebrow">Weight History</div>'
+    +'<div class="heroCard" style="padding:0;overflow:hidden">'+rows+'</div></section>';
+}
 
 /* ===================== Render: hero ===================== */
 function chartData(){
@@ -415,9 +467,10 @@ function render(){
     '<header class="header"><a class="back" href="index.html"><span class="backArrow">←</span> Dashboard</a>'
     +'<div class="headerRow"><h1 class="title">Progress</h1><div class="unitSeg"><button class="unitBtn '+(state.units==='kg'?'unitBtnActive':'')+'" data-act="units" data-u="kg">kg</button><button class="unitBtn '+(state.units==='lb'?'unitBtnActive':'')+'" data-act="units" data-u="lb">lb</button></div>'+themeSegHtml()+'</div>'
     +'<p class="subtitle">weight log · progress photos</p></header>'
-    +heroHtml()+trainingHtml()+compHtml()+photosHtml();
+    +heroHtml()+historyHtml()+trainingHtml()+compHtml()+photosHtml();
   renderModals();
   const inp=document.getElementById('wInput');if(inp&&ui.editing)inp.focus();
+  const hinp=document.getElementById('histInput');if(hinp)hinp.focus();
 }
 
 /* ===================== Modals: gallery + viewer ===================== */
@@ -485,6 +538,10 @@ document.addEventListener('click',e=>{
   if(act==='back'){e.preventDefault();}
   else if(act==='units')changeUnits(b.dataset.u);
   else if(act==='edit')startEdit();
+  else if(act==='edit-entry'){startEditEntry(b.dataset.key);}
+  else if(act==='save-entry'){const hinp=document.getElementById('histInput');if(hinp)ui.editDraft=hinp.value;saveEditEntry();}
+  else if(act==='cancel-entry')cancelEditEntry();
+  else if(act==='delete-entry'){if(confirm('Delete this entry?'))deleteEntry(b.dataset.key);}
   else if(act==='openGallery'){ui.photosOpen=true;render();}
   else if(act==='closeGallery'){ui.photosOpen=false;render();}
   else if(act==='addPhoto')fileInput.click();
@@ -497,8 +554,8 @@ document.addEventListener('click',e=>{
   else if(act==='del'){if(!ui.confirmDelete){ui.confirmDelete=true;render();}else{const victim=photos.find(p=>p.id===ui.viewerId);photos=photos.filter(p=>p.id!==ui.viewerId);if(victim&&victim.storagePath&&window.PatronDB&&PatronDB.deleteImage)PatronDB.deleteImage('progress-photos',victim.storagePath);savePhotos();ui.viewerId=null;ui.compareId=null;ui.confirmDelete=false;render();}}
 });
 document.addEventListener('submit',e=>{const f=e.target.closest('[data-act="saveForm"]');if(f){e.preventDefault();const inp=document.getElementById('wInput');if(inp)ui.draft=inp.value;saveWeight();}});
-document.addEventListener('input',e=>{if(e.target.id==='wInput'){ui.draft=e.target.value;ui.error=null;}});
-document.addEventListener('keydown',e=>{if(e.target.id==='wInput'&&e.key==='Escape'){ui.editing=false;ui.error=null;render();}});
+document.addEventListener('input',e=>{if(e.target.id==='wInput'){ui.draft=e.target.value;ui.error=null;}else if(e.target.id==='histInput'){ui.editDraft=e.target.value;ui.editError=null;}});
+document.addEventListener('keydown',e=>{if(e.target.id==='wInput'&&e.key==='Escape'){ui.editing=false;ui.error=null;render();}else if(e.target.id==='histInput'&&e.key==='Escape')cancelEditEntry();else if(e.target.id==='histInput'&&e.key==='Enter'){e.preventDefault();ui.editDraft=e.target.value;saveEditEntry();}});
 
 applyTheme(currentTheme);
 

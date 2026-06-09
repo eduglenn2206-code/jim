@@ -188,7 +188,9 @@ function computeWeek(offsetWeeks){
 
   const prog = lsGet('progress_standalone_v1');
   const entries = (prog && Array.isArray(prog.entries)) ? prog.entries : [];
-  const weights = weekDays.map(dk => { const e = entries.find(x => x && x.dateKey === dk); return e && e.weight != null ? Number(e.weight) : null; });
+  const weightUnit = (prog && prog.units) || 'kg';
+  const kgToDisp = kg => weightUnit === 'lb' ? Math.round(kg * 2.20462 * 10) / 10 : Math.round(kg * 10) / 10;
+  const weights = weekDays.map(dk => { const e = entries.find(x => x && x.dateKey === dk); return e && e.weightKg != null ? kgToDisp(Number(e.weightKg)) : null; });
   const validWeights = weights.filter(x => x != null);
 
   const doneMap = lsGet('po_coach_workout_done') || {};
@@ -224,7 +226,7 @@ function computeWeek(offsetWeeks){
     return doneMap[dk] ? 'done' : 'none';
   });
 
-  return { weekDays, weights, validWeights, workoutDays, daysSoFar, supDaysGood, supDaysTracked, supDayStatus, gymDayStatus, watDayStatus };
+  return { weekDays, weights, validWeights, weightUnit, workoutDays, daysSoFar, supDaysGood, supDaysTracked, supDayStatus, gymDayStatus, watDayStatus };
 }
 
 function weightChartSvg(weights, units){
@@ -289,7 +291,8 @@ function historyHtml(){
   if (!history.length) return '<div class="emptyHistory">No historical weeks saved yet.<br>Each Monday the current week is archived here.</div>';
   return '<div class="historyList">' + history.slice().reverse().map(w => {
     const parts = [];
-    if (w.avgWeight != null) parts.push({ v: w.avgWeight + (w.units === 'imperial' ? ' lb' : ' kg'), l: 'Avg wt' });
+    const uLabel = (w.units === 'lb' || w.units === 'imperial') ? ' lb' : ' kg';
+    if (w.avgWeight != null) parts.push({ v: w.avgWeight + uLabel, l: 'Avg wt' });
     if (w.workoutDays != null) parts.push({ v: w.workoutDays + '/' + (w.daysSoFar || 7), l: 'Trained' });
     if (w.supDaysGood != null && w.supDaysTracked) parts.push({ v: w.supDaysGood + '/' + w.supDaysTracked, l: 'Supps' });
     const statsHtml = parts.map(p => '<div class="historyStat"><span class="historyStatVal">'+esc(p.v)+'</span><span class="historyStatLabel">'+p.l+'</span></div>').join('');
@@ -299,10 +302,9 @@ function historyHtml(){
 
 function render(){
   const profile = lsGet(PROFILE_KEY);
-  const units = profile && profile.units === 'imperial' ? 'imperial' : 'metric';
-  const unitLabel = units === 'imperial' ? 'lb' : 'kg';
   const todayKey = localDateKey();
   const w = computeWeek(0);
+  const unitLabel = w.weightUnit;
 
   const avgWeight = w.validWeights.length ? Math.round(w.validWeights.reduce((a,b)=>a+b,0)/w.validWeights.length*10)/10 : null;
   const weightDelta = w.validWeights.length >= 2 ? Math.round((w.validWeights[w.validWeights.length-1]-w.validWeights[0])*10)/10 : null;
@@ -343,12 +345,12 @@ function render(){
     + historyHtml();
 
   document.getElementById('app').innerHTML = html;
-  archiveWeekIfNeeded(w, units, unitLabel);
+  archiveWeekIfNeeded(w, unitLabel);
 }
 
 function weekLabel(weekDays){ return weekDays[0].slice(5)+' – '+weekDays[6].slice(5); }
 
-function archiveWeekIfNeeded(w, units, unitLabel){
+function archiveWeekIfNeeded(w, unitLabel){
   const todayKey = localDateKey();
   if (todayKey !== w.weekDays[0]) return; // only archive on Monday
   const saved = lsGet(WEEKLY_KEY) || { history: [] };
@@ -361,7 +363,7 @@ function archiveWeekIfNeeded(w, units, unitLabel){
   const entry = {
     weekKey: prevKey,
     label: weekLabel(prevWeekDays),
-    avgWeight, units,
+    avgWeight, units: unitLabel,
     workoutDays: prevW.workoutDays,
     daysSoFar: prevW.daysSoFar,
     supDaysGood: prevW.supDaysGood,
