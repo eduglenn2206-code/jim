@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -316,16 +316,16 @@ function getWeekDates(){
 function computeWeekly(){
   const weekDays = getWeekDates();
   const todayKey = localDateKey();
-  const prog = lsGet(‘progress_standalone_v1’);
+  const prog = lsGet('progress_standalone_v1');
   const entries = (prog && Array.isArray(prog.entries)) ? prog.entries : [];
   const weights = weekDays.map(dk => { const e = entries.find(x => x && x.dateKey === dk); return e && e.weight != null ? Number(e.weight) : null; });
   const validWeights = weights.filter(x => x != null);
   const latestWeight = validWeights.length ? validWeights[validWeights.length - 1] : null;
   const weightDelta = validWeights.length >= 2 ? Math.round((validWeights[validWeights.length - 1] - validWeights[0]) * 10) / 10 : null;
-  const doneMap = lsGet(‘po_coach_workout_done’) || {};
+  const doneMap = lsGet('po_coach_workout_done') || {};
   const daysSoFar = weekDays.filter(dk => dk <= todayKey).length;
   const workoutDays = weekDays.filter(dk => dk <= todayKey && !!doneMap[dk]).length;
-  const sup = lsGet(‘supplements_standalone_v1’);
+  const sup = lsGet('supplements_standalone_v1');
   let supDaysGood = 0, supDaysTracked = 0;
   if (sup && Array.isArray(sup.items) && sup.items.length){
     const allIds = sup.items.map(i => i.id);
@@ -338,7 +338,7 @@ function computeWeekly(){
   return { weekDays, weights, validWeights, latestWeight, weightDelta, workoutDays, daysSoFar, supDaysGood, supDaysTracked };
 }
 function weightSparkline(weights, validWeights){
-  if (validWeights.length < 2) return ‘’;
+  if (validWeights.length < 2) return '';
   const sw = 100, sh = 28, n = weights.length, pad = 4;
   const defined = weights.map((v, i) => v != null ? { i, v } : null).filter(Boolean);
   const minV = Math.min(...defined.map(d => d.v));
@@ -347,34 +347,34 @@ function weightSparkline(weights, validWeights){
   const px = i => pad + (i / (n - 1)) * (sw - pad * 2);
   const py = v => (sh - pad) - ((v - minV) / range) * (sh - pad * 2);
   const pts = defined.map(d => ({ x: px(d.i), y: py(d.v) }));
-  const pathD = pts.map((p, i) => (i === 0 ? ‘M’ : ‘L’) + p.x.toFixed(1) + ‘ ‘ + p.y.toFixed(1)).join(‘ ‘);
+  const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
   const last = pts[pts.length - 1];
-  return ‘<svg class="weekSpark" viewBox="0 0 ‘ + sw + ‘ ‘ + sh + ‘" preserveAspectRatio="none" aria-hidden>’
-    + ‘<path d="’ + pathD + ‘" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>’
-    + ‘<circle cx="’ + last.x.toFixed(1) + ‘" cy="’ + last.y.toFixed(1) + ‘" r="3" fill="var(--brand)" style="filter:drop-shadow(0 0 6px var(--brand-glow))"/>’
-    + ‘</svg>’;
+  return '<svg class="weekSpark" viewBox="0 0 ' + sw + ' ' + sh + '" preserveAspectRatio="none" aria-hidden>'
+    + '<path d="' + pathD + '" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>'
+    + '<circle cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) + '" r="3" fill="var(--brand)" style="filter:drop-shadow(0 0 6px var(--brand-glow))"/>'
+    + '</svg>';
 }
 function weeklyTileHtml(){
   const d = computeWeekly();
   const hasData = d.validWeights.length > 0 || d.workoutDays > 0 || d.supDaysTracked > 0;
   if (!hasData){
-    return ‘<a class="weekTile" href="weekly.html">’
-      + ‘<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>’
-      + ‘<div class="weekEmptyTitle">No data yet</div>’
-      + ‘<p class="weekEmptyBody">Log workouts, track your weight, and take your supplements — your weekly summary will appear here.</p>’
-      + ‘</a>’;
+    return '<a class="weekTile" href="weekly.html">'
+      + '<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>'
+      + '<div class="weekEmptyTitle">No data yet</div>'
+      + '<p class="weekEmptyBody">Log workouts, track your weight, and take your supplements — your weekly summary will appear here.</p>'
+      + '</a>';
   }
-  const units = profile && profile.units === ‘imperial’ ? ‘lb’ : ‘kg’;
-  const wVal = d.latestWeight != null ? d.latestWeight + ‘ ‘ + units : ‘—‘;
-  const wSub = d.weightDelta != null ? (d.weightDelta > 0 ? ‘+’ : ‘’) + d.weightDelta + ‘ this week’ : d.validWeights.length + ‘ logged’;
-  const gVal = d.workoutDays + ‘/’ + d.daysSoFar;
-  const sVal = d.supDaysTracked ? d.supDaysGood + ‘/’ + d.supDaysTracked : ‘—‘;
-  const metric = (val, label, sub) => ‘<div class="weekMetric"><span class="weekMetricVal">’ + val + ‘</span><span class="weekMetricLabel">’ + label + ‘</span>’ + (sub ? ‘<span class="weekMetricSub">’ + sub + ‘</span>’ : ‘’) + ‘</div>’;
-  return ‘<a class="weekTile" href="weekly.html">’
-    + ‘<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>’
-    + ‘<div class="weekMetrics">’ + metric(wVal, ‘Weight’, wSub) + metric(gVal, ‘Trained’, ‘days’) + metric(sVal, ‘Supps’, ‘days on’) + ‘</div>’
+  const units = profile && profile.units === 'imperial' ? 'lb' : 'kg';
+  const wVal = d.latestWeight != null ? d.latestWeight + ' ' + units : '—';
+  const wSub = d.weightDelta != null ? (d.weightDelta > 0 ? '+' : '') + d.weightDelta + ' this week' : d.validWeights.length + ' logged';
+  const gVal = d.workoutDays + '/' + d.daysSoFar;
+  const sVal = d.supDaysTracked ? d.supDaysGood + '/' + d.supDaysTracked : '—';
+  const metric = (val, label, sub) => '<div class="weekMetric"><span class="weekMetricVal">' + val + '</span><span class="weekMetricLabel">' + label + '</span>' + (sub ? '<span class="weekMetricSub">' + sub + '</span>' : '') + '</div>';
+  return '<a class="weekTile" href="weekly.html">'
+    + '<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>'
+    + '<div class="weekMetrics">' + metric(wVal, 'Weight', wSub) + metric(gVal, 'Trained', 'days') + metric(sVal, 'Supps', 'days on') + '</div>'
     + weightSparkline(d.weights, d.validWeights)
-    + ‘</a>’;
+    + '</a>';
 }
 
 /* ---- Live stats read from each app's own localStorage (defensive; tagline if unavailable) ---- */
@@ -462,8 +462,8 @@ function loggedWeightToday(){ try { const s = lsGet('progress_standalone_v1'); r
 function loggedGymToday(){ try { const d = lsGet('po_coach_workout_done'); return !!(d && d[localDateKey()]); } catch(e){ return false; } }
 function remindersHtml(){
   const items = [];
-  if (!loggedWeightToday()) items.push({ file: 'progress.html', icon: '⚖️', text: 'Log today’s weight' });
-  if (!loggedGymToday()) items.push({ file: 'gym.html', icon: '🏋️', text: 'Log today’s gym' });
+  if (!loggedWeightToday()) items.push({ file: 'progress.html', icon: '⚖️', text: "Log today's weight" });
+  if (!loggedGymToday()) items.push({ file: 'gym.html', icon: '🏋️', text: "Log today's gym" });
   if (!items.length) return '';
   return '<div class="reminders" role="status"><span class="remindersLabel">Today</span>'
     + items.map(r => '<a class="reminderChip" href="' + r.file + '"><span class="reminderDot"></span><span aria-hidden>' + r.icon + '</span> ' + r.text + ' <span class="reminderGo" aria-hidden>→</span></a>').join('')
@@ -476,9 +476,9 @@ function render(){
 }
 
 function renderModal(){
-  const root = document.getElementById(‘modalRoot’);
+  const root = document.getElementById('modalRoot');
   if (ui.profileOpen) { root.innerHTML = profileModalHtml(); return; }
-  root.innerHTML = ‘’;
+  root.innerHTML = '';
 }
 
 /* ============================================================
@@ -554,10 +554,10 @@ document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const action = btn.getAttribute('data-action');
-  if (action === ‘theme’) { applyTheme(btn.getAttribute(‘data-theme’)); return; }
-  if (action === ‘open-profile’) { openProfile(); return; }
-  if (action === ‘close-profile’) { if (!stop || btn.tagName === ‘BUTTON’) { ui.profileOpen = false; renderModal(); } return; }
-  if (action === ‘save-profile’) { saveProfile(); return; }
+  if (action === 'theme') { applyTheme(btn.getAttribute('data-theme')); return; }
+  if (action === 'open-profile') { openProfile(); return; }
+  if (action === 'close-profile') { if (!stop || btn.tagName === 'BUTTON') { ui.profileOpen = false; renderModal(); } return; }
+  if (action === 'save-profile') { saveProfile(); return; }
 });
 
 // Profile-form fields → draft (text/number on input keeps caret; selects on change; units re-renders to relabel).
