@@ -122,8 +122,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-ui),-apple-syst
 
 /* ---- Payout card ---- */
 .card{padding:var(--space-5);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow)}
-.payoutForm{display:grid;grid-template-columns:1fr 1fr auto;gap:var(--space-3);align-items:stretch;margin-bottom:var(--space-5)}
-@media(max-width:480px){.payoutForm{grid-template-columns:1fr 1fr}.payoutFormBtn{grid-column:span 2}}
+.payoutForm{display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-5)}
+.payoutFormRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
+@media(min-width:540px){.payoutForm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:stretch}.payoutFormRow{display:contents}}
 .fieldInput{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;color:var(--fg);font-family:var(--font-ui);font-size:var(--text-sm);outline:none;transition:border-color var(--duration) var(--ease-premium),box-shadow var(--duration) var(--ease-premium)}
 .fieldInput::placeholder{color:var(--muted)}
 .fieldInput:focus{border-color:var(--brand-line);box-shadow:0 0 0 3px var(--brand-soft)}
@@ -226,8 +227,10 @@ function payoutHtml(){
     +'<span class="rateSub">reinvest rate · 30d</span></div>';
 
   const form = '<div class="payoutForm">'
+    +'<div class="payoutFormRow">'
     +'<input class="fieldInput" id="p-rec" type="number" min="0" step="0.01" placeholder="Received" inputmode="decimal" />'
     +'<input class="fieldInput" id="p-rei" type="number" min="0" step="0.01" placeholder="Reinvested" inputmode="decimal" />'
+    +'</div>'
     +'<button class="btn btnPrimary payoutFormBtn" id="logBtn">Log</button>'
     +'</div>';
 
