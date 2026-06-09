@@ -16,7 +16,6 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 img{max-width:100%;height:auto}
 @media (max-width:480px){input,select,textarea{font-size:16px !important}}
-@supports (padding:max(0px)){body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:max(env(safe-area-inset-left),20px);padding-right:max(env(safe-area-inset-right),20px)}}
 </style>
 <meta name="theme-color" content="#0C0C12">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -182,7 +181,7 @@ html, body {
 .po-shell {
   width: 100%; max-width: min(720px, 100vw);
   margin: 0 auto;
-  padding: 24px 16px calc(40px + env(safe-area-inset-bottom));
+  padding: calc(env(safe-area-inset-top,0px) + 24px) max(env(safe-area-inset-right,0px),16px) calc(40px + env(safe-area-inset-bottom)) max(env(safe-area-inset-left,0px),16px);
   box-sizing: border-box;
 }
 /* Defeat the default `min-width: auto` on flex/grid items — without
