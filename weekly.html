@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0C0C12" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Patron" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<style id="pwa-mobile">
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+img{max-width:100%;height:auto}
+@media (max-width:480px){input,select,textarea{font-size:16px !important}}
+</style>
+<title>This Week · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("patron_theme")||"nocturne");}catch(e){document.documentElement.setAttribute("data-theme","nocturne");}</script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0C0C12; --bg-elevated: #15151F;
+  --surface: rgba(255,255,255,0.028); --surface-2: rgba(255,255,255,0.055);
+  --fg: #F3F2F8; --muted: rgba(243,242,248,0.50); --muted-strong: rgba(243,242,248,0.74);
+  --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.17);
+  --brand: #8B7CFF; --brand-2: #C7BBFF; --brand-ink: #130E2E;
+  --brand-soft: rgba(139,124,255,0.12); --brand-line: rgba(139,124,255,0.28); --brand-glow: rgba(139,124,255,0.42);
+  --pos: #46E0A8; --pos-soft: rgba(70,224,168,0.12); --pos-line: rgba(70,224,168,0.26);
+  --neg: #FB7185; --neg-soft: rgba(251,113,133,0.12); --neg-line: rgba(251,113,133,0.26);
+  --warn: #FBBF24; --warn-soft: rgba(251,191,36,0.10); --warn-line: rgba(251,191,36,0.26);
+  --track: rgba(255,255,255,0.06);
+  --card-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 44px -30px rgba(0,0,0,0.85);
+  --glow-1: rgba(139,124,255,0.12); --glow-2: rgba(70,224,168,0.05);
+  --grain-opacity: 0.05; --overlay: rgba(6,6,12,0.66);
+  --space-1:.25rem; --space-2:.5rem; --space-3:.75rem; --space-4:1rem;
+  --space-5:1.25rem; --space-6:1.5rem; --space-8:2rem; --space-10:2.5rem; --space-12:3rem; --space-16:4rem;
+  --radius-sm: 8px; --radius-md: 11px; --radius-lg: 18px; --radius-pill: 999px;
+  --text-xs:.75rem; --text-sm:.875rem; --text-base:1rem; --text-lg:1.125rem;
+  --text-xl:1.375rem; --text-2xl:1.75rem; --text-3xl:2.5rem;
+  --ease: cubic-bezier(0.2,0.8,0.2,1); --ease-premium: cubic-bezier(0.16,1,0.3,1);
+  --duration-fast:120ms; --duration:200ms;
+  --font-display:'Space Grotesk'; --font-ui:'Hanken Grotesk'; --font-mono:'JetBrains Mono';
+}
+[data-theme="aurora"] {
+  color-scheme: dark;
+  --bg: #080913; --bg-elevated: #12131F;
+  --surface: rgba(150,160,255,0.045); --surface-2: rgba(150,160,255,0.08);
+  --fg: #EEF0FF; --muted: rgba(220,225,255,0.52); --muted-strong: rgba(220,225,255,0.76);
+  --border: rgba(150,160,255,0.11); --border-strong: rgba(150,160,255,0.22);
+  --brand: #8B7BFF; --brand-2: #B9ABFF; --brand-ink: #0A0922;
+  --brand-soft: rgba(139,123,255,0.15); --brand-line: rgba(139,123,255,0.32); --brand-glow: rgba(124,107,255,0.6);
+  --pos: #4FE3D0; --pos-soft: rgba(79,227,208,0.13); --pos-line: rgba(79,227,208,0.28);
+  --neg: #FF6FA5; --neg-soft: rgba(255,111,165,0.13); --neg-line: rgba(255,111,165,0.28);
+  --warn: #FFC65C; --warn-soft: rgba(255,198,92,0.11); --warn-line: rgba(255,198,92,0.28);
+  --track: rgba(160,170,255,0.09);
+  --card-shadow: 0 0 0 1px rgba(140,130,255,0.05) inset, 0 22px 56px -28px rgba(78,60,210,0.55);
+  --glow-1: rgba(124,107,255,0.20); --glow-2: rgba(79,227,208,0.13);
+  --grain-opacity: 0.05; --overlay: rgba(5,6,16,0.7);
+}
+[data-theme="daylight"] {
+  color-scheme: light;
+  --bg: #F3F2FA; --bg-elevated: #FFFFFF;
+  --surface: #FFFFFF; --surface-2: #FAF9FF;
+  --fg: #171622; --muted: rgba(23,22,34,0.52); --muted-strong: rgba(23,22,34,0.72);
+  --border: rgba(23,22,60,0.10); --border-strong: rgba(23,22,60,0.18);
+  --brand: #6A45FF; --brand-2: #8E6BFF; --brand-ink: #FFFFFF;
+  --brand-soft: rgba(106,69,255,0.08); --brand-line: rgba(106,69,255,0.24); --brand-glow: rgba(106,69,255,0.28);
+  --pos: #0E9E64; --pos-soft: rgba(14,158,100,0.10); --pos-line: rgba(14,158,100,0.26);
+  --neg: #E11D63; --neg-soft: rgba(225,29,99,0.08); --neg-line: rgba(225,29,99,0.24);
+  --warn: #B4690E; --warn-soft: rgba(180,105,14,0.10); --warn-line: rgba(180,105,14,0.24);
+  --track: rgba(23,22,60,0.08);
+  --card-shadow: 0 1px 2px rgba(23,22,60,0.05), 0 16px 34px -24px rgba(23,22,60,0.24);
+  --glow-1: rgba(106,69,255,0.07); --glow-2: rgba(14,158,100,0.04);
+  --grain-opacity: 0.02; --overlay: rgba(28,26,52,0.4);
+}
+
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+html { background: var(--bg); }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: var(--text-base); -webkit-font-smoothing: antialiased; }
+.grain-overlay { position: relative; }
+.grain-overlay::after { content:''; position: fixed; inset:0; pointer-events:none; z-index:1; opacity: var(--grain-opacity); mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); background-size: 200px 200px; }
+.page { position: relative; min-height: 100dvh; background: var(--bg); color: var(--fg); padding: calc(env(safe-area-inset-top,0px) + var(--space-12)) max(env(safe-area-inset-right,0px),var(--space-5)) calc(env(safe-area-inset-bottom,0px) + var(--space-16)) max(env(safe-area-inset-left,0px),var(--space-5)); isolation: isolate; }
+.page::before { content:''; position: absolute; inset:0; pointer-events:none; z-index:-1; background: radial-gradient(58% 42% at 82% 6%, var(--glow-1), transparent 70%), radial-gradient(48% 38% at 12% 92%, var(--glow-2), transparent 72%); }
+.shell { max-width: 680px; margin: 0 auto; }
+
+/* Header */
+.header { display:flex; align-items:center; gap: var(--space-4); margin-bottom: var(--space-8); }
+.backBtn { display:inline-flex; align-items:center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 7px 14px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-strong); text-decoration: none; flex-shrink:0; transition: border-color var(--duration) var(--ease), color var(--duration) var(--ease); }
+.backBtn:hover { color: var(--fg); border-color: var(--border-strong); }
+.headerTitle { font-family: var(--font-display); font-weight: 700; font-size: var(--text-2xl); letter-spacing: -0.03em; }
+.headerSub { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+/* Section label */
+.sectionLabel { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--brand); margin: var(--space-8) 0 var(--space-4); }
+.sectionLabel:first-of-type { margin-top: 0; }
+
+/* Summary stat row */
+.statRow { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+.statCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); display:flex; flex-direction:column; gap: 3px; }
+.statVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-2xl); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.statLabel { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.statSub { font-size: 11px; color: var(--muted-strong); margin-top: 1px; }
+.statVal.pos { color: var(--pos); }
+.statVal.neg { color: var(--neg); }
+
+/* Weight chart */
+.chartCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-6); }
+.chartTitle { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--space-4); }
+.weightChart { width:100%; display:block; overflow:visible; }
+.wcAxis { font-family: var(--font-mono); font-size: 9px; fill: var(--muted); }
+.wcLine { fill:none; stroke: var(--brand); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.wcArea { fill: url(#wcGrad); }
+.wcDot { fill: var(--brand); filter: drop-shadow(0 0 6px var(--brand-glow)); }
+.wcDotEmpty { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1.5; }
+.noDataMsg { text-align:center; padding: var(--space-8) var(--space-4); color: var(--muted); font-size: var(--text-sm); }
+
+/* Day strip (workouts + supps) */
+.dayStrip { display:grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2); margin-bottom: var(--space-6); }
+.dayCell { display:flex; flex-direction:column; align-items:center; gap: 5px; }
+.dayCellLabel { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.dayCellLabel.today { color: var(--brand); }
+.dayDot { width: 10px; height: 10px; border-radius: 50%; background: var(--track); }
+.dayDot.done { background: var(--pos); box-shadow: 0 0 8px var(--pos-line); }
+.dayDot.partial { background: var(--warn); }
+.dayDot.future { background: transparent; border: 1px solid var(--border); }
+
+/* Adherence bar */
+.adherenceRow { display:flex; flex-direction:column; gap: var(--space-3); margin-bottom: var(--space-6); }
+.adherenceItem { display:flex; flex-direction:column; gap: 6px; }
+.adherenceHead { display:flex; align-items:baseline; justify-content:space-between; }
+.adherenceLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.adherencePct { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
+.adherenceTrack { height: 6px; border-radius: var(--radius-pill); background: var(--track); overflow:hidden; }
+.adherenceFill { height: 100%; border-radius: var(--radius-pill); background: var(--brand); transition: width 600ms var(--ease-premium); }
+.adherenceFill.full { background: var(--pos); }
+.adherenceFill.low { background: var(--neg); }
+
+/* History */
+.historyList { display:flex; flex-direction:column; gap: var(--space-3); }
+.historyRow { display:flex; align-items:center; gap: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.historyWeek { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--muted); flex-shrink:0; min-width: 80px; }
+.historyStats { display:flex; gap: var(--space-5); flex:1; flex-wrap:wrap; }
+.historyStat { display:flex; flex-direction:column; gap: 1px; }
+.historyStatVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.historyStatLabel { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.emptyHistory { padding: var(--space-6) var(--space-4); text-align:center; color: var(--muted); font-size: var(--text-sm); border: 1px dashed var(--border); border-radius: var(--radius-lg); }
+</style>
+</head>
+<body>
+<main class="page grain-overlay">
+  <div class="shell" id="app"></div>
+</main>
+<script>
+function lsGet(k){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function localDateKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function activeDateKey(){ const d=new Date(); if(d.getHours()<6) d.setDate(d.getDate()-1); return localDateKey(d); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const WEEKLY_KEY = 'dashboard_weekly_v1';
+const PROFILE_KEY = 'patron_profile_v1';
+
+function getWeekDates(offsetWeeks){
+  offsetWeeks = offsetWeeks || 0;
+  const today = new Date();
+  const dow = today.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const keys = [];
+  for (let i = 0; i < 7; i++){
+    const d = new Date(today);
+    d.setDate(today.getDate() + mondayOffset + i + offsetWeeks * 7);
+    keys.push(localDateKey(d));
+  }
+  return keys;
+}
+
+const DAY_LABELS = ['M','T','W','T','F','S','S'];
+
+function computeWeek(offsetWeeks){
+  const weekDays = getWeekDates(offsetWeeks);
+  const todayKey = localDateKey();
+
+  const prog = lsGet('progress_standalone_v1');
+  const entries = (prog && Array.isArray(prog.entries)) ? prog.entries : [];
+  const weights = weekDays.map(dk => { const e = entries.find(x => x && x.dateKey === dk); return e && e.weight != null ? Number(e.weight) : null; });
+  const validWeights = weights.filter(x => x != null);
+
+  const doneMap = lsGet('po_coach_workout_done') || {};
+  const workoutDays = weekDays.filter(dk => dk <= todayKey && !!doneMap[dk]).length;
+  const daysSoFar = weekDays.filter(dk => dk <= todayKey).length;
+
+  const sup = lsGet('supplements_standalone_v1');
+  let supDaysGood = 0, supDaysTracked = 0;
+  const supDayStatus = weekDays.map(dk => {
+    if (dk > todayKey) return 'future';
+    if (!sup || !Array.isArray(sup.items) || !sup.items.length) return 'none';
+    const taken = (sup.taken && sup.taken[dk]) || {};
+    const total = sup.items.length;
+    const done = sup.items.filter(i => !!taken[i.id]).length;
+    supDaysTracked++;
+    if (done >= total) { supDaysGood++; return 'done'; }
+    if (done > 0) return 'partial';
+    return 'none';
+  });
+
+  const watLog = lsGet('water_standalone_v1');
+  const watDayStatus = weekDays.map(dk => {
+    if (dk > todayKey) return 'future';
+    const n = (watLog && watLog.logs && watLog.logs[dk]) || 0;
+    const goal = (watLog && watLog.goal) || 8;
+    if (n >= goal) return 'done';
+    if (n > 0) return 'partial';
+    return 'none';
+  });
+
+  const gymDayStatus = weekDays.map(dk => {
+    if (dk > todayKey) return 'future';
+    return doneMap[dk] ? 'done' : 'none';
+  });
+
+  return { weekDays, weights, validWeights, workoutDays, daysSoFar, supDaysGood, supDaysTracked, supDayStatus, gymDayStatus, watDayStatus };
+}
+
+function weightChartSvg(weights, units){
+  const defined = weights.map((v,i) => v!=null?{i,v}:null).filter(Boolean);
+  if (!defined.length) return '<div class="noDataMsg">No weight entries this week.<br>Log weight in the Progress tab.</div>';
+
+  const W=320, H=100, padL=38, padR=10, padT=10, padB=20;
+  const n=7;
+  const minV = Math.min(...defined.map(d=>d.v));
+  const maxV = Math.max(...defined.map(d=>d.v));
+  const range = maxV-minV || 0.5;
+  const px = i => padL + (i/(n-1))*(W-padL-padR);
+  const py = v => padT + (1 - (v-minV)/range) * (H-padT-padB);
+
+  const pts = defined.map(d => ({ x: px(d.i), y: py(d.v), v: d.v, i: d.i }));
+  const linePath = pts.map((p,i) => (i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+  const areaPath = linePath + ' L'+pts[pts.length-1].x.toFixed(1)+' '+(H-padB)+' L'+pts[0].x.toFixed(1)+' '+(H-padB)+' Z';
+
+  const tick = v => Math.round(v*10)/10;
+  const yLabels = [tick(minV), tick((minV+maxV)/2), tick(maxV)];
+  const yPositions = [py(minV), py((minV+maxV)/2), py(maxV)];
+
+  let svg = '<svg class="weightChart" viewBox="0 0 '+W+' '+H+'" aria-label="Weight this week">';
+  svg += '<defs><linearGradient id="wcGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--brand)" stop-opacity="0.18"/><stop offset="100%" stop-color="var(--brand)" stop-opacity="0"/></linearGradient></defs>';
+  yLabels.forEach((l,i) => {
+    svg += '<text class="wcAxis" x="'+(padL-4)+'" y="'+(yPositions[i]+3.5)+'" text-anchor="end">'+l+'</text>';
+    svg += '<line x1="'+padL+'" y1="'+yPositions[i].toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yPositions[i].toFixed(1)+'" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>';
+  });
+  const dayAbbr = ['M','T','W','T','F','S','S'];
+  for (let i=0;i<n;i++){
+    svg += '<text class="wcAxis" x="'+px(i).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle">'+dayAbbr[i]+'</text>';
+  }
+  if (defined.length > 1) svg += '<path class="wcArea" d="'+areaPath+'"/>';
+  if (defined.length > 1) svg += '<path class="wcLine" d="'+linePath+'"/>';
+  pts.forEach(p => {
+    svg += '<circle class="wcDot" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4"/>';
+  });
+  svg += '</svg>';
+  return svg;
+}
+
+function dayStripHtml(weekDays, dayStatuses, todayKey){
+  const cells = weekDays.map((dk,i) => {
+    const st = dayStatuses[i];
+    const lbl = DAY_LABELS[i];
+    const isToday = dk === todayKey;
+    return '<div class="dayCell"><span class="dayCellLabel'+(isToday?' today':'')+'">'+lbl+'</span><span class="dayDot '+st+'"></span></div>';
+  });
+  return '<div class="dayStrip">'+cells.join('')+'</div>';
+}
+
+function adherenceBarHtml(label, done, total){
+  if (!total) return '';
+  const pct = Math.round((done/total)*100);
+  const cls = pct >= 100 ? 'full' : pct < 50 ? 'low' : '';
+  return '<div class="adherenceItem"><div class="adherenceHead"><span class="adherenceLabel">'+label+'</span><span class="adherencePct">'+done+'/'+total+'</span></div><div class="adherenceTrack"><div class="adherenceFill '+cls+'" style="width:'+pct+'%"></div></div></div>';
+}
+
+function historyHtml(){
+  const saved = lsGet(WEEKLY_KEY);
+  const history = (saved && Array.isArray(saved.history)) ? saved.history : [];
+  if (!history.length) return '<div class="emptyHistory">No historical weeks saved yet.<br>Each Monday the current week is archived here.</div>';
+  return '<div class="historyList">' + history.slice().reverse().map(w => {
+    const parts = [];
+    if (w.avgWeight != null) parts.push({ v: w.avgWeight + (w.units === 'imperial' ? ' lb' : ' kg'), l: 'Avg wt' });
+    if (w.workoutDays != null) parts.push({ v: w.workoutDays + '/' + (w.daysSoFar || 7), l: 'Trained' });
+    if (w.supDaysGood != null && w.supDaysTracked) parts.push({ v: w.supDaysGood + '/' + w.supDaysTracked, l: 'Supps' });
+    const statsHtml = parts.map(p => '<div class="historyStat"><span class="historyStatVal">'+esc(p.v)+'</span><span class="historyStatLabel">'+p.l+'</span></div>').join('');
+    return '<div class="historyRow"><span class="historyWeek">'+esc(w.label||w.weekKey)+'</span><div class="historyStats">'+statsHtml+'</div></div>';
+  }).join('') + '</div>';
+}
+
+function render(){
+  const profile = lsGet(PROFILE_KEY);
+  const units = profile && profile.units === 'imperial' ? 'imperial' : 'metric';
+  const unitLabel = units === 'imperial' ? 'lb' : 'kg';
+  const todayKey = localDateKey();
+  const w = computeWeek(0);
+
+  const avgWeight = w.validWeights.length ? Math.round(w.validWeights.reduce((a,b)=>a+b,0)/w.validWeights.length*10)/10 : null;
+  const weightDelta = w.validWeights.length >= 2 ? Math.round((w.validWeights[w.validWeights.length-1]-w.validWeights[0])*10)/10 : null;
+  const deltaClass = weightDelta == null ? '' : weightDelta > 0 ? 'pos' : weightDelta < 0 ? 'neg' : '';
+  const deltaStr = weightDelta == null ? '' : (weightDelta > 0 ? '+' : '') + weightDelta + ' ' + unitLabel;
+
+  const statRow = '<div class="statRow">'
+    + '<div class="statCard"><span class="statVal'+(deltaClass?' '+deltaClass:'')+'">'+(avgWeight != null ? avgWeight+' '+unitLabel : '—')+'</span><span class="statLabel">Avg weight</span>'+(deltaStr?'<span class="statSub">'+esc(deltaStr)+'</span>':'')+'</div>'
+    + '<div class="statCard"><span class="statVal">'+w.workoutDays+'/'+w.daysSoFar+'</span><span class="statLabel">Days trained</span></div>'
+    + '<div class="statCard"><span class="statVal">'+(w.supDaysTracked ? w.supDaysGood+'/'+w.supDaysTracked : '—')+'</span><span class="statLabel">Supp days</span></div>'
+    + '</div>';
+
+  const gymAdherence = adherenceBarHtml('Gym', w.workoutDays, w.daysSoFar);
+  const supAdherence = adherenceBarHtml('Supplements', w.supDaysGood, w.supDaysTracked);
+
+  const waterDone = w.watDayStatus.filter(s=>s==='done'||s==='partial').length;
+  const waterTracked = w.watDayStatus.filter(s=>s!=='future').length;
+  const waterAdherence = adherenceBarHtml('Hydration', waterDone, waterTracked);
+
+  const html = '<header class="header">'
+    + '<a class="backBtn" href="index.html">← Home</a>'
+    + '<div><div class="headerTitle">This Week</div><div class="headerSub">'+esc(w.weekDays[0])+' – '+esc(w.weekDays[6])+'</div></div>'
+    + '</header>'
+
+    + '<div class="sectionLabel">Summary</div>'
+    + statRow
+
+    + '<div class="sectionLabel">Weight trend</div>'
+    + '<div class="chartCard"><div class="chartTitle">Daily weight · '+esc(unitLabel)+'</div>'+weightChartSvg(w.weights, units)+'</div>'
+
+    + '<div class="sectionLabel">Training</div>'
+    + dayStripHtml(w.weekDays, w.gymDayStatus, todayKey)
+
+    + '<div class="sectionLabel">Adherence</div>'
+    + '<div class="adherenceRow">'+gymAdherence+supAdherence+waterAdherence+'</div>'
+
+    + '<div class="sectionLabel">History</div>'
+    + historyHtml();
+
+  document.getElementById('app').innerHTML = html;
+  archiveWeekIfNeeded(w, units, unitLabel);
+}
+
+function weekLabel(weekDays){ return weekDays[0].slice(5)+' – '+weekDays[6].slice(5); }
+
+function archiveWeekIfNeeded(w, units, unitLabel){
+  const todayKey = localDateKey();
+  if (todayKey !== w.weekDays[0]) return; // only archive on Monday
+  const saved = lsGet(WEEKLY_KEY) || { history: [] };
+  const prevWeekDays = getWeekDates(-1);
+  const prevKey = prevWeekDays[0];
+  if (saved.history && saved.history.some(h => h.weekKey === prevKey)) return; // already archived
+  const prevW = computeWeek(-1);
+  if (!prevW.validWeights.length && !prevW.workoutDays && !prevW.supDaysTracked) return; // nothing to save
+  const avgWeight = prevW.validWeights.length ? Math.round(prevW.validWeights.reduce((a,b)=>a+b,0)/prevW.validWeights.length*10)/10 : null;
+  const entry = {
+    weekKey: prevKey,
+    label: weekLabel(prevWeekDays),
+    avgWeight, units,
+    workoutDays: prevW.workoutDays,
+    daysSoFar: prevW.daysSoFar,
+    supDaysGood: prevW.supDaysGood,
+    supDaysTracked: prevW.supDaysTracked,
+    ts: Date.now(),
+  };
+  saved.history = (saved.history || []).concat(entry).slice(-26); // keep ~6 months
+  try { localStorage.setItem(WEEKLY_KEY, JSON.stringify(saved)); } catch(e){}
+}
+
+render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="db.js?v=15"></script>
+<script src="cloud-sync.js?v=15"></script>
+</body>
+</html>

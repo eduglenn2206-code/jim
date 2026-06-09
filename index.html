@@ -142,36 +142,21 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .cardStatValue { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; color: var(--fg); font-variant-numeric: tabular-nums; }
 .cardStatLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
-/* Vitals tile */
-.vitals { grid-column: span 2; grid-row: span 2; display:flex; flex-direction:column; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--brand-line); border-radius: var(--radius-lg); background: var(--brand-soft); box-shadow: 0 0 50px -24px var(--brand-glow), var(--card-shadow); }
-@media (max-width: 520px) { .vitals { grid-column: span 1; grid-row: auto; } }
-.vitalsHead { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); flex-wrap:wrap; }
-.vitalsEyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand); }
-.srcBadge { display:inline-flex; align-items:center; gap: 6px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); color: var(--muted-strong); }
-.srcDot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 8px var(--brand-glow); }
-.vitalsBody { display:flex; align-items:center; gap: var(--space-6); flex-wrap: wrap; }
-.recRing { position: relative; width: 132px; height: 132px; display:grid; place-items:center; flex-shrink:0; }
-.recRing svg { position:absolute; inset:0; transform: rotate(-90deg); }
-.recTrack { fill:none; stroke: var(--track); stroke-width: 9; }
-.recFill { fill:none; stroke: currentColor; stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 700ms var(--ease-premium); filter: drop-shadow(0 0 10px currentColor); }
-.recRing[data-tone="good"] .recFill { color: var(--pos); }
-.recRing[data-tone="watch"] .recFill { color: var(--warn); }
-.recRing[data-tone="low"] .recFill { color: var(--neg); }
-.recRing[data-tone="muted"] .recFill { color: var(--muted); }
-.recNum { font-family: var(--font-display); font-weight: 600; font-size: 2.5rem; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.recUnit { font-size: var(--text-base); color: var(--muted-strong); }
-.recCap { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
-.vMetrics { display:flex; flex-direction:column; gap: var(--space-3); flex:1; min-width: 150px; }
-.vRow { display:flex; align-items:baseline; justify-content:space-between; gap: var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--border); }
-.vRow:last-child { border-bottom:0; }
-.vLabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-.vVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
-.vVal em { font-family: var(--font-mono); font-style: normal; font-size: 11px; color: var(--muted); margin-left: 4px; }
-.vitalsFoot { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); flex-wrap: wrap; }
-.vitalsSync { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-.vitalsEmpty { display:flex; flex-direction:column; gap: var(--space-3); justify-content:center; flex:1; }
-.vitalsEmptyTitle { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; }
-.vitalsEmptyBody { font-size: 13px; color: var(--muted-strong); line-height: 1.55; max-width: 42ch; }
+/* This Week tile */
+.weekTile { grid-column: span 2; grid-row: span 2; display:flex; flex-direction:column; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--brand-line); border-radius: var(--radius-lg); background: var(--brand-soft); box-shadow: 0 0 50px -24px var(--brand-glow), var(--card-shadow); cursor: pointer; text-decoration: none; color: inherit; transition: filter var(--duration) var(--ease); }
+.weekTile:hover { filter: brightness(1.04); }
+@media (max-width: 520px) { .weekTile { grid-column: span 1; grid-row: auto; } }
+.weekHead { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); }
+.weekEyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand); }
+.weekArrow { font-size: 13px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.05em; }
+.weekMetrics { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3) var(--space-4); }
+.weekMetric { display:flex; flex-direction:column; gap: 2px; }
+.weekMetricVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.weekMetricLabel { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+.weekMetricSub { font-size: 11px; color: var(--muted-strong); }
+.weekSpark { display:block; width:100%; margin-top: var(--space-2); overflow: visible; }
+.weekEmptyTitle { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; }
+.weekEmptyBody { font-size: 13px; color: var(--muted-strong); line-height: 1.55; max-width: 42ch; }
 
 /* Buttons */
 .btn { display:inline-flex; align-items:center; justify-content:center; gap: var(--space-2); padding: 0.6rem var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-family: var(--font-ui); font-weight: 600; cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--fg); white-space: nowrap; transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease), color var(--duration) var(--ease), filter var(--duration) var(--ease), box-shadow var(--duration) var(--ease); }
@@ -237,16 +222,6 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .tickerItem[data-tone="muted"] { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .tickerTrack { animation: none; } .tickerViewport { overflow-x: auto; } }
 
-/* How-to steps (Apple Watch manual-copy guide inside the vitals modal) */
-.howto { margin: var(--space-4) 0 var(--space-2); padding: var(--space-4); border: 1px solid var(--brand-line); background: var(--brand-soft); border-radius: var(--radius-md); }
-.howtoTitle { display:flex; align-items:center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-3); }
-.howtoSteps { list-style: none; margin: 0; padding: 0; display:flex; flex-direction:column; gap: var(--space-3); counter-reset: step; }
-.howtoSteps li { position: relative; padding-left: 34px; font-size: 13px; line-height: 1.5; color: var(--muted-strong); counter-increment: step; }
-.howtoSteps li::before { content: counter(step); position: absolute; left: 0; top: -1px; display:grid; place-items:center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-family: var(--font-display); font-weight: 700; font-size: 12px; }
-.howtoSteps strong { color: var(--fg); font-weight: 600; }
-.howtoChips { display:flex; flex-wrap:wrap; gap: 6px; margin-top: 6px; }
-.howtoChip { display:inline-block; padding: 3px 9px; border-radius: var(--radius-pill); background: var(--surface-2); border: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--fg); }
-.howtoFoot { margin: var(--space-3) 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -291,69 +266,11 @@ function themeSegHtml(){
     + '</div>';
 }
 
-/* ============================================================
- * Shared health record — the suite-wide vitals bridge.
- * Whoop publishes it from the Whoop tab; this hub lets non-Whoop
- * users enter it manually (or tag it as Apple Watch). Supplements
- * reads it to drive its recovery/sleep recommendations.
- * ============================================================ */
-const HEALTH_KEY = 'patron_health_v1';
-const LEGACY_WHOOP_KEY = 'patron_whoop_data_v1';
-function loadHealth(){
-  try {
-    let r = localStorage.getItem(HEALTH_KEY);
-    if (r) { const d = JSON.parse(r); if (d && d.connected) return d; }
-    r = localStorage.getItem(LEGACY_WHOOP_KEY);
-    if (r) { const d = JSON.parse(r); if (d && d.connected) return Object.assign({ source: 'whoop' }, d); }
-  } catch(e){}
-  return null;
-}
-function saveHealth(d){ try { localStorage.setItem(HEALTH_KEY, JSON.stringify(d)); } catch(e){} }
-function clearHealth(){ try { localStorage.removeItem(HEALTH_KEY); } catch(e){} }
-let health = loadHealth();
+const WEEKLY_KEY = 'dashboard_weekly_v1';
+function loadWeekly(){ try { const r = localStorage.getItem(WEEKLY_KEY); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+function saveWeekly(d){ try { localStorage.setItem(WEEKLY_KEY, JSON.stringify(d)); } catch(e){} }
+let weekly = loadWeekly();
 
-/* ---- Live WHOOP sync via the /api serverless OAuth flow (deployed host only) ---- */
-const ON_SERVER = location.protocol === 'http:' || location.protocol === 'https:';
-let whoopStatus = { connected: false, checked: false };
-async function syncWhoop(){
-  if (!ON_SERVER) return;
-  try {
-    const r = await fetch('/api/whoop/data', { cache: 'no-store' });
-    const j = await r.json();
-    whoopStatus = { connected: !!j.connected, checked: true };
-    if (j.connected) {
-      health = { source: 'whoop', connected: true, ts: j.ts || Date.now(), recovery: j.recovery, sleepHours: j.sleepHours, sleepPerf: j.sleepPerf, sleepTargetHours: j.sleepTargetHours || 8, hrv: j.hrv, rhr: j.rhr, strain: j.strain };
-      saveHealth(health);
-    } else if (health && health.source === 'whoop') {
-      clearHealth(); health = null; // token expired/disconnected — drop stale Whoop data
-    }
-  } catch (e) { whoopStatus = { connected: false, checked: true }; }
-  render();
-}
-
-/* ---- Live Fitbit sync — same serverless OAuth pattern as Whoop ---- */
-let fitbitStatus = { connected: false, checked: false };
-async function syncFitbit(){
-  if (!ON_SERVER) return;
-  try {
-    const r = await fetch('/api/fitbit/data', { cache: 'no-store' });
-    const j = await r.json();
-    fitbitStatus = { connected: !!j.connected, checked: true };
-    if (j.connected) {
-      health = { source: 'fitbit', connected: true, ts: j.ts || Date.now(), recovery: j.recovery, sleepHours: j.sleepHours, sleepPerf: j.sleepPerf, sleepTargetHours: j.sleepTargetHours || 8, bedtime: j.bedtime, wakeTime: j.wakeTime, hrv: j.hrv, rhr: j.rhr, strain: j.strain };
-      saveHealth(health);
-    } else if (health && health.source === 'fitbit') {
-      clearHealth(); health = null; // token expired/disconnected — drop stale Fitbit data
-    }
-  } catch (e) { fitbitStatus = { connected: false, checked: true }; }
-  render();
-}
-
-function sourceLabel(s){ return s === 'apple' ? 'Apple Watch' : s === 'manual' ? 'Manual' : s === 'fitbit' ? 'Fitbit' : 'Whoop'; }
-function recTone(r){ if (r == null) return 'muted'; if (r >= 67) return 'good'; if (r >= 34) return 'watch'; return 'low'; }
-function formatHM(h){ if (h == null) return '—'; const hh = Math.floor(h); const mm = Math.round((h - hh) * 60); return hh + 'h ' + String(mm).padStart(2,'0') + 'm'; }
-function formatClock(t){ if (!t) return '—'; const [h, m] = String(t).split(':').map(Number); if (!isFinite(h)) return esc(t); const ap = h < 12 ? 'am' : 'pm'; const h12 = h % 12 === 0 ? 12 : h % 12; return h12 + ':' + String(m || 0).padStart(2,'0') + ap; }
-function ago(ts){ if (!ts) return ''; const m = Math.max(0, Math.round((Date.now() - ts) / 60000)); if (m < 1) return 'just now'; if (m < 60) return m + 'm ago'; return Math.round(m / 60) + 'h ago'; }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ============================================================
@@ -369,7 +286,7 @@ function firstName(){ return profile && profile.name ? String(profile.name).trim
 /* ============================================================
  * UI state
  * ============================================================ */
-const ui = { modalOpen: false, draftSource: 'manual', profileOpen: false, profileDraft: null };
+const ui = { profileOpen: false, profileDraft: null };
 
 /* ============================================================
  * Views
@@ -384,34 +301,80 @@ function headerHtml(){
     + '<div class="headerControls">' + themeSegHtml() + chip + '</div></header>';
 }
 
-function vitalsTileHtml(){
-  const h = health;
-  if (!h) {
-    return '<section class="vitals">'
-      + '<div class="vitalsHead"><span class="vitalsEyebrow">Today’s vitals</span></div>'
-      + '<div class="vitalsEmpty"><div class="vitalsEmptyTitle">No vitals yet</div>'
-      + '<p class="vitalsEmptyBody">Connect Whoop, link your Apple Watch, or enter recovery &amp; sleep by hand. Your numbers then power the rest of the suite — the supplement recommender reads recovery &amp; sleep automatically.</p>'
-      + '<div class="vitalsFoot"><button type="button" class="btn btn-primary" data-action="open-vitals">Add vitals</button></div></div></section>';
+function getWeekDates(){
+  const today = new Date();
+  const dow = today.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const keys = [];
+  for (let i = 0; i < 7; i++){
+    const d = new Date(today);
+    d.setDate(today.getDate() + mondayOffset + i);
+    keys.push(localDateKey(d));
   }
-  const tone = recTone(h.recovery);
-  const circ = 2 * Math.PI * 56;
-  const ring = '<div class="recRing" data-tone="' + tone + '"><svg viewBox="0 0 132 132" aria-hidden><circle cx="66" cy="66" r="56" class="recTrack"/>'
-    + (h.recovery != null ? '<circle cx="66" cy="66" r="56" class="recFill" style="stroke-dasharray:' + circ + ';stroke-dashoffset:' + (circ * (1 - h.recovery / 100)) + ';"/>' : '')
-    + '</svg><div style="text-align:center"><div class="recNum">' + (h.recovery != null ? Math.round(h.recovery) : '—') + (h.recovery != null ? '<span class="recUnit">%</span>' : '') + '</div><div class="recCap">Recovery</div></div></div>';
-  function row(label, val){ return '<div class="vRow"><span class="vLabel">' + label + '</span><span class="vVal">' + val + '</span></div>'; }
-  const sleepVal = h.sleepHours != null ? formatHM(h.sleepHours) + (h.sleepPerf != null ? '<em>' + Math.round(h.sleepPerf) + '%</em>' : '') : '—';
-  const metrics = '<div class="vMetrics">'
-    + row('Sleep', sleepVal)
-    + (h.bedtime && h.wakeTime ? row('In bed', formatClock(h.bedtime) + ' <em>→</em> ' + formatClock(h.wakeTime)) : '')
-    + row('HRV', h.hrv != null ? Math.round(h.hrv) + '<em>ms</em>' : '—')
-    + row('Resting HR', h.rhr != null ? Math.round(h.rhr) + '<em>bpm</em>' : '—')
-    + '</div>';
-  return '<section class="vitals">'
-    + '<div class="vitalsHead"><span class="vitalsEyebrow">Today’s vitals</span>'
-    + '<span class="srcBadge"><span class="srcDot"></span>' + esc(sourceLabel(h.source)) + '</span></div>'
-    + '<div class="vitalsBody">' + ring + metrics + '</div>'
-    + '<div class="vitalsFoot"><span class="vitalsSync">' + (h.ts ? 'updated ' + ago(h.ts) : '') + '</span>'
-    + '<button type="button" class="btn btn-ghost" data-action="open-vitals">Update vitals</button></div></section>';
+  return keys;
+}
+function computeWeekly(){
+  const weekDays = getWeekDates();
+  const todayKey = localDateKey();
+  const prog = lsGet(‘progress_standalone_v1’);
+  const entries = (prog && Array.isArray(prog.entries)) ? prog.entries : [];
+  const weights = weekDays.map(dk => { const e = entries.find(x => x && x.dateKey === dk); return e && e.weight != null ? Number(e.weight) : null; });
+  const validWeights = weights.filter(x => x != null);
+  const latestWeight = validWeights.length ? validWeights[validWeights.length - 1] : null;
+  const weightDelta = validWeights.length >= 2 ? Math.round((validWeights[validWeights.length - 1] - validWeights[0]) * 10) / 10 : null;
+  const doneMap = lsGet(‘po_coach_workout_done’) || {};
+  const daysSoFar = weekDays.filter(dk => dk <= todayKey).length;
+  const workoutDays = weekDays.filter(dk => dk <= todayKey && !!doneMap[dk]).length;
+  const sup = lsGet(‘supplements_standalone_v1’);
+  let supDaysGood = 0, supDaysTracked = 0;
+  if (sup && Array.isArray(sup.items) && sup.items.length){
+    const allIds = sup.items.map(i => i.id);
+    weekDays.filter(dk => dk <= todayKey).forEach(dk => {
+      const taken = (sup.taken && sup.taken[dk]) || {};
+      supDaysTracked++;
+      if (allIds.every(id => !!taken[id])) supDaysGood++;
+    });
+  }
+  return { weekDays, weights, validWeights, latestWeight, weightDelta, workoutDays, daysSoFar, supDaysGood, supDaysTracked };
+}
+function weightSparkline(weights, validWeights){
+  if (validWeights.length < 2) return ‘’;
+  const sw = 100, sh = 28, n = weights.length, pad = 4;
+  const defined = weights.map((v, i) => v != null ? { i, v } : null).filter(Boolean);
+  const minV = Math.min(...defined.map(d => d.v));
+  const maxV = Math.max(...defined.map(d => d.v));
+  const range = maxV - minV || 1;
+  const px = i => pad + (i / (n - 1)) * (sw - pad * 2);
+  const py = v => (sh - pad) - ((v - minV) / range) * (sh - pad * 2);
+  const pts = defined.map(d => ({ x: px(d.i), y: py(d.v) }));
+  const pathD = pts.map((p, i) => (i === 0 ? ‘M’ : ‘L’) + p.x.toFixed(1) + ‘ ‘ + p.y.toFixed(1)).join(‘ ‘);
+  const last = pts[pts.length - 1];
+  return ‘<svg class="weekSpark" viewBox="0 0 ‘ + sw + ‘ ‘ + sh + ‘" preserveAspectRatio="none" aria-hidden>’
+    + ‘<path d="’ + pathD + ‘" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>’
+    + ‘<circle cx="’ + last.x.toFixed(1) + ‘" cy="’ + last.y.toFixed(1) + ‘" r="3" fill="var(--brand)" style="filter:drop-shadow(0 0 6px var(--brand-glow))"/>’
+    + ‘</svg>’;
+}
+function weeklyTileHtml(){
+  const d = computeWeekly();
+  const hasData = d.validWeights.length > 0 || d.workoutDays > 0 || d.supDaysTracked > 0;
+  if (!hasData){
+    return ‘<a class="weekTile" href="weekly.html">’
+      + ‘<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>’
+      + ‘<div class="weekEmptyTitle">No data yet</div>’
+      + ‘<p class="weekEmptyBody">Log workouts, track your weight, and take your supplements — your weekly summary will appear here.</p>’
+      + ‘</a>’;
+  }
+  const units = profile && profile.units === ‘imperial’ ? ‘lb’ : ‘kg’;
+  const wVal = d.latestWeight != null ? d.latestWeight + ‘ ‘ + units : ‘—‘;
+  const wSub = d.weightDelta != null ? (d.weightDelta > 0 ? ‘+’ : ‘’) + d.weightDelta + ‘ this week’ : d.validWeights.length + ‘ logged’;
+  const gVal = d.workoutDays + ‘/’ + d.daysSoFar;
+  const sVal = d.supDaysTracked ? d.supDaysGood + ‘/’ + d.supDaysTracked : ‘—‘;
+  const metric = (val, label, sub) => ‘<div class="weekMetric"><span class="weekMetricVal">’ + val + ‘</span><span class="weekMetricLabel">’ + label + ‘</span>’ + (sub ? ‘<span class="weekMetricSub">’ + sub + ‘</span>’ : ‘’) + ‘</div>’;
+  return ‘<a class="weekTile" href="weekly.html">’
+    + ‘<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>’
+    + ‘<div class="weekMetrics">’ + metric(wVal, ‘Weight’, wSub) + metric(gVal, ‘Trained’, ‘days’) + metric(sVal, ‘Supps’, ‘days on’) + ‘</div>’
+    + weightSparkline(d.weights, d.validWeights)
+    + ‘</a>’;
 }
 
 /* ---- Live stats read from each app's own localStorage (defensive; tagline if unavailable) ---- */
@@ -424,7 +387,6 @@ function statFor(file){
     if (file === 'finance.html') { const s = lsGet('finance_portfolio_v1'); if (s && (s.invested > 0 || s.passiveIncome > 0)) { const sym = ({USD:'$',EUR:'€',GBP:'£',CHF:'Fr '}[s.currency] || (s.currency+' ')); const inv = sym + fmtNum(s.invested||0); const lbl = s.passiveIncome > 0 ? '~'+sym+fmtNum(s.passiveIncome)+'/mo passive' : 'total invested'; return { value: inv, label: lbl }; } }
     else if (file === 'supplements.html') { const s = lsGet('supplements_standalone_v1'); if (s && Array.isArray(s.items) && s.items.length) { const tk = (s.taken && s.taken[activeDateKey()]) || {}; const n = s.items.filter(i => tk[i.id]).length; return { value: n + '/' + s.items.length, label: 'taken today' }; } }
     else if (file === 'water.html') { const s = lsGet('water_standalone_v1'); if (s && s.logs) { const n = s.logs[localDateKey()] || 0; return { value: String(n), label: (n === 1 ? 'drink' : 'drinks') + ' today' }; } }
-    else if (file === 'whoop.html') { if (health && health.recovery != null) return { value: Math.round(health.recovery) + '%', label: 'recovery' }; }
   } catch (e) {}
   return null;
 }
@@ -464,16 +426,8 @@ function sparkSvg(seed){
 function tickerMetrics(){
   const out = [];
   const add = (label, value, unit, tone, delta) => out.push({ label, value, unit: unit || '', tone: tone || 'brand', delta: delta || '' });
-  const h = health;
-  if (h){
-    if (h.recovery != null) add('REC', Math.round(h.recovery), '%', recTone(h.recovery));
-    if (h.sleepHours != null){ const hh = Math.floor(h.sleepHours), mm = Math.round((h.sleepHours - hh) * 60); add('SLP', hh + 'h' + String(mm).padStart(2,'0'), '', h.sleepPerf != null ? (h.sleepPerf >= 85 ? 'good' : h.sleepPerf >= 60 ? 'watch' : 'low') : 'brand'); }
-    if (h.strain != null) add('STR', (Math.round(h.strain * 10) / 10).toFixed(1), '', 'brand');
-    if (h.hrv != null) add('HRV', Math.round(h.hrv), 'ms', 'good');
-    if (h.rhr != null) add('RHR', Math.round(h.rhr), 'bpm', 'brand');
-  }
   try {
-    const fin = lsGet('finance_standalone_v1');
+    const fin = lsGet('finance_portfolio_v1');
     if (fin && Array.isArray(fin.accounts) && fin.accounts.length){ const nw = fin.accounts.reduce((a,x)=>a+(Number(x.amountCHF)||0),0); add('NET', 'CHF ' + fmtNum(nw), '', 'good'); }
     const wat = lsGet('water_standalone_v1');
     if (wat && wat.logs){ const n = wat.logs[localDateKey()] || 0; add('H2O', String(n), n === 1 ? 'drink' : 'drinks', 'brand'); }
@@ -487,7 +441,7 @@ function tickerHtml(){
   if (!items.length){
     return '<div class="ticker"><div class="tickerLead"><span class="tickerPulse"></span>Dashboard · Live</div>'
       + '<div class="tickerViewport"><div class="tickerTrack" style="animation:none;padding-left:var(--space-5)">'
-      + '<span class="tickerItem" style="border:0"><span class="tiLabel">No data yet — add vitals to go live</span></span>'
+      + '<span class="tickerItem" style="border:0"><span class="tiLabel">No data yet — log workouts, weight &amp; supplements to go live</span></span>'
       + '</div></div></div>';
   }
   const chip = (m, i) => '<span class="tickerItem" data-tone="' + m.tone + '">'
@@ -517,105 +471,14 @@ function remindersHtml(){
 }
 function render(){
   document.getElementById('app').innerHTML =
-    headerHtml() + tickerHtml() + remindersHtml() + '<div class="bento">' + vitalsTileHtml() + APPS.map(cardHtml).join('') + '</div>';
+    headerHtml() + tickerHtml() + remindersHtml() + '<div class="bento">' + weeklyTileHtml() + APPS.map(cardHtml).join('') + '</div>';
   renderModal();
 }
 
-/* ============================================================
- * Vitals modal
- * ============================================================ */
 function renderModal(){
-  const root = document.getElementById('modalRoot');
+  const root = document.getElementById(‘modalRoot’);
   if (ui.profileOpen) { root.innerHTML = profileModalHtml(); return; }
-  if (!ui.modalOpen) { root.innerHTML = ''; return; }
-  const src = ui.draftSource;
-  const h = (health && health.source === src) ? health : (src !== 'whoop' && health && health.source !== 'whoop') ? health : null;
-  const v = (k) => (h && h[k] != null ? h[k] : '');
-  const pill = (key, emoji, label) => '<button type="button" class="srcPill ' + (src === key ? 'srcPillActive' : '') + '" data-action="src" data-src="' + key + '"><span class="srcEmoji">' + emoji + '</span>' + label + '</button>';
-
-  let bodyHtml;
-  if (src === 'whoop') {
-    if (!ON_SERVER) {
-      bodyHtml = '<p class="panelNote">Live Whoop sync runs on the deployed app (Vercel) with your Whoop API keys. Opened locally, use <strong>Apple Watch</strong> or <strong>Manual</strong> above. Once deployed &amp; configured, a one-tap <em>Connect Whoop</em> appears here. See <strong>WHOOP_SETUP.md</strong>.</p>';
-    } else if (whoopStatus.connected) {
-      bodyHtml = '<p class="panelNote">✓ <strong>Whoop connected.</strong> Recovery, sleep &amp; strain sync automatically and publish across the suite. Tokens are stored server-side, never in the browser.</p>'
-        + '<div class="srcActions"><button type="button" class="btn btn-link spacer" data-action="whoop-disconnect">disconnect Whoop</button><button type="button" class="btn btn-primary" data-action="whoop-sync">Sync now</button></div>';
-    } else {
-      bodyHtml = '<p class="panelNote">Connect your Whoop account once — recovery, sleep &amp; strain then sync automatically and feed your supplement picks. You log in on whoop.com; your tokens stay server-side.</p>'
-        + '<div class="srcActions"><a class="btn btn-primary" href="/api/whoop/login">Connect Whoop</a></div>';
-    }
-  } else if (src === 'fitbit') {
-    if (!ON_SERVER) {
-      bodyHtml = '<p class="panelNote">Live Fitbit sync runs on the deployed app (Vercel) with your Fitbit API keys. Opened locally, use <strong>Apple Watch</strong> or <strong>Manual</strong> above. Once deployed &amp; configured, a one-tap <em>Connect Fitbit</em> appears here. See <strong>FITBIT_SETUP.md</strong>.</p>';
-    } else if (fitbitStatus.connected) {
-      bodyHtml = '<p class="panelNote">✓ <strong>Fitbit connected.</strong> Sleep, HRV, resting HR &amp; your bed/wake times sync automatically across the suite. Tokens are stored server-side, never in the browser.<br><br>Heads-up: Fitbit doesn’t expose a recovery score, so the recovery ring stays blank — everything else fills in.</p>'
-        + '<div class="srcActions"><button type="button" class="btn btn-link spacer" data-action="fitbit-disconnect">disconnect Fitbit</button><button type="button" class="btn btn-primary" data-action="fitbit-sync">Sync now</button></div>';
-    } else {
-      bodyHtml = '<p class="panelNote">Connect your Fitbit account once — sleep, HRV, resting HR &amp; bed/wake times then sync automatically. You log in on fitbit.com; your tokens stay server-side. (Fitbit has no recovery score, so that ring stays blank.)</p>'
-        + '<div class="srcActions"><a class="btn btn-primary" href="/api/fitbit/login">Connect Fitbit</a></div>';
-    }
-  } else {
-    bodyHtml = '<div class="fieldGrid">'
-      + '<div class="field"><label class="fieldLabel" for="f-rec">Recovery / readiness %</label><input id="f-rec" class="fieldInput" type="number" min="0" max="100" inputmode="numeric" placeholder="—" value="' + esc(v('recovery')) + '" /></div>'
-      + '<div class="field"><label class="fieldLabel" for="f-sleep">Sleep (hours)</label><input id="f-sleep" class="fieldInput" type="number" min="0" max="24" step="0.1" inputmode="decimal" placeholder="7.5" value="' + esc(v('sleepHours')) + '" /></div>'
-      + '<div class="field"><label class="fieldLabel" for="f-bed">Bedtime</label><input id="f-bed" class="fieldInput" type="time" value="' + esc(v('bedtime')) + '" /></div>'
-      + '<div class="field"><label class="fieldLabel" for="f-wake">Wake time</label><input id="f-wake" class="fieldInput" type="time" value="' + esc(v('wakeTime')) + '" /></div>'
-      + '<div class="field"><label class="fieldLabel" for="f-hrv">HRV (ms)</label><input id="f-hrv" class="fieldInput" type="number" min="0" max="300" inputmode="numeric" placeholder="—" value="' + esc(v('hrv')) + '" /></div>'
-      + '<div class="field"><label class="fieldLabel" for="f-rhr">Resting HR (bpm)</label><input id="f-rhr" class="fieldInput" type="number" min="20" max="150" inputmode="numeric" placeholder="—" value="' + esc(v('rhr')) + '" /></div>'
-      + '<div class="field fieldFull"><label class="fieldLabel" for="f-target">Sleep target (hours)</label><input id="f-target" class="fieldInput" type="number" min="4" max="12" step="0.5" inputmode="decimal" placeholder="8" value="' + esc(h && h.sleepTargetHours != null ? h.sleepTargetHours : 8) + '" /></div>'
-      + '</div>'
-      + '<p class="howtoFoot" style="margin-top:var(--space-3)">Fill <strong>Bedtime</strong> + <strong>Wake time</strong> and we’ll work out hours asleep for you — or just type the hours directly.</p>';
-    if (src === 'apple') bodyHtml = '<div class="howto"><div class="howtoTitle">⌚ Got an Apple Watch? Here’s the 20-second way</div>'
-      + '<ol class="howtoSteps">'
-      + '<li>Open the <strong>Health</strong> app on your iPhone.</li>'
-      + '<li>Tap <strong>Sleep</strong> and note today’s <strong>bedtime</strong> &amp; <strong>wake time</strong>, then these three numbers:<div class="howtoChips"><span class="howtoChip">Heart Rate Variability</span><span class="howtoChip">Resting Heart Rate</span><span class="howtoChip">Time Asleep</span></div></li>'
-      + '<li>Type them into the fields below and hit <strong>Save vitals</strong>.</li>'
-      + '</ol>'
-      + '<p class="howtoFoot">Apple won’t let a website read Health data directly, so this quick copy keeps it private — nothing leaves your phone. Saved as “Apple Watch.”</p></div>'
-      + bodyHtml;
-    else bodyHtml += '<p class="panelNote">Enter whatever you track. Recovery and sleep are what drive the supplement recommendations — the rest is optional.</p>';
-  }
-  const canClear = !!health;
-  root.innerHTML = '<div class="overlay" data-action="close-vitals"><div class="panel" data-stop="1">'
-    + '<div class="panelHead"><div><div class="panelEyebrow">Health source</div><h2 class="panelTitle">Today’s vitals</h2></div><button type="button" class="panelClose" data-action="close-vitals">×</button></div>'
-    + '<div class="srcPills">' + pill('whoop','🔋','Whoop') + pill('fitbit','💠','Fitbit') + pill('apple','⌚','Apple Watch') + pill('manual','✍️','Manual') + '</div>'
-    + bodyHtml
-    + '<div class="panelActions">' + (canClear ? '<button type="button" class="btn btn-link spacer" data-action="clear-vitals">clear vitals</button>' : '')
-    + '<button type="button" class="btn btn-ghost" data-action="close-vitals">Cancel</button>'
-    + (src !== 'whoop' && src !== 'fitbit' ? '<button type="button" class="btn btn-primary" data-action="save-vitals">Save vitals</button>' : '')
-    + '</div></div></div>';
-}
-
-function openVitals(){
-  ui.modalOpen = true;
-  ui.draftSource = (health && health.source) ? health.source : 'manual';
-  if (ui.draftSource === 'whoop') ui.draftSource = 'whoop';
-  renderModal();
-}
-function saveVitals(){
-  const num = (id) => { const el = document.getElementById(id); if (!el || el.value === '') return null; const n = Number(el.value); return isFinite(n) ? n : null; };
-  const str = (id) => { const el = document.getElementById(id); return el && el.value ? el.value : null; };
-  const recovery = num('f-rec');
-  const bedtime = str('f-bed');
-  const wakeTime = str('f-wake');
-  // Hours-asleep priority: explicit field → otherwise derive from bed/wake times (wake assumed next morning if earlier than bed).
-  let sleepHours = num('f-sleep');
-  if (sleepHours == null && bedtime && wakeTime){
-    const [bh, bm] = bedtime.split(':').map(Number);
-    const [wh, wm] = wakeTime.split(':').map(Number);
-    let mins = (wh * 60 + wm) - (bh * 60 + bm);
-    if (mins <= 0) mins += 24 * 60;
-    sleepHours = Math.round((mins / 60) * 10) / 10;
-  }
-  const hrv = num('f-hrv');
-  const rhr = num('f-rhr');
-  const target = num('f-target') || 8;
-  if (recovery == null && sleepHours == null && hrv == null && rhr == null) { alert('Enter at least one value (recovery, sleep, or bed + wake times).'); return; }
-  const sleepPerf = sleepHours != null ? Math.round(Math.min(100, (sleepHours / target) * 100)) : null;
-  health = { source: ui.draftSource, connected: true, ts: Date.now(), recovery, sleepHours, sleepPerf, sleepTargetHours: target, bedtime, wakeTime, hrv, rhr, strain: null };
-  saveHealth(health);
-  ui.modalOpen = false;
-  render();
+  root.innerHTML = ‘’;
 }
 
 /* ============================================================
@@ -637,7 +500,7 @@ function draftFromProfile(){
     caffeine: p.caffeineMgPerDay != null && p.caffeineMgPerDay !== '' ? String(p.caffeineMgPerDay) : '',
   };
 }
-function openProfile(){ ui.profileDraft = draftFromProfile(); ui.profileOpen = true; ui.modalOpen = false; renderModal(); }
+function openProfile(){ ui.profileDraft = draftFromProfile(); ui.profileOpen = true; renderModal(); }
 function profileModalHtml(){
   const d = ui.profileDraft || draftFromProfile();
   const imperial = d.units === 'imperial';
@@ -691,33 +554,10 @@ document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const action = btn.getAttribute('data-action');
-  if (action === 'theme') { applyTheme(btn.getAttribute('data-theme')); return; }
-  if (action === 'open-vitals') { openVitals(); return; }
-  if (action === 'open-profile') { openProfile(); return; }
-  if (action === 'close-profile') { if (!stop || btn.tagName === 'BUTTON') { ui.profileOpen = false; renderModal(); } return; }
-  if (action === 'save-profile') { saveProfile(); return; }
-  if (action === 'close-vitals') { if (!stop || btn.tagName === 'BUTTON') { ui.modalOpen = false; renderModal(); } return; }
-  if (action === 'src') { ui.draftSource = btn.getAttribute('data-src'); renderModal(); return; }
-  if (action === 'save-vitals') { saveVitals(); return; }
-  if (action === 'clear-vitals') { if (confirm('Clear today’s vitals from the suite?')) { clearHealth(); health = null; ui.modalOpen = false; render(); } return; }
-  if (action === 'whoop-sync') { syncWhoop(); return; }
-  if (action === 'whoop-disconnect') {
-    fetch('/api/whoop/logout').catch(()=>{}).then(() => {
-      whoopStatus = { connected: false, checked: true };
-      if (health && health.source === 'whoop') { clearHealth(); health = null; }
-      ui.modalOpen = false; render();
-    });
-    return;
-  }
-  if (action === 'fitbit-sync') { syncFitbit(); return; }
-  if (action === 'fitbit-disconnect') {
-    fetch('/api/fitbit/logout').catch(()=>{}).then(() => {
-      fitbitStatus = { connected: false, checked: true };
-      if (health && health.source === 'fitbit') { clearHealth(); health = null; }
-      ui.modalOpen = false; render();
-    });
-    return;
-  }
+  if (action === ‘theme’) { applyTheme(btn.getAttribute(‘data-theme’)); return; }
+  if (action === ‘open-profile’) { openProfile(); return; }
+  if (action === ‘close-profile’) { if (!stop || btn.tagName === ‘BUTTON’) { ui.profileOpen = false; renderModal(); } return; }
+  if (action === ‘save-profile’) { saveProfile(); return; }
 });
 
 // Profile-form fields → draft (text/number on input keeps caret; selects on change; units re-renders to relabel).
@@ -743,30 +583,14 @@ document.addEventListener('change', e => {
   ui.profileDraft[t.dataset.pf] = t.value;
 });
 
-// Reflect theme / vitals changes made in sibling tabs.
 window.addEventListener('storage', e => {
   if (e.key === 'patron_theme' && e.newValue) { applyTheme(e.newValue); return; }
-  if (e.key === HEALTH_KEY || e.key === LEGACY_WHOOP_KEY || e.key === null) { health = loadHealth(); render(); }
+  weekly = loadWeekly(); render();
 });
 
 if (!profile) { ui.profileDraft = draftFromProfile(); ui.profileOpen = true; } // first run → onboarding prompt (init draft so typing is captured)
 applyTheme(currentTheme);
 
-// On a deployed host: pick up the OAuth return + pull the latest Whoop / Fitbit vitals.
-(function bootVitals(){
-  if (!ON_SERVER) return;
-  try {
-    const q = new URLSearchParams(location.search);
-    const w = q.get('whoop'), f = q.get('fitbit');
-    if (w || f) {
-      history.replaceState(null, '', location.pathname);
-      if (w === 'error' || w === 'denied') alert('Whoop connection didn’t complete. Check your WHOOP_CLIENT_ID / SECRET and the registered redirect URL (see WHOOP_SETUP.md), then try again.');
-      if (f === 'error' || f === 'denied') alert('Fitbit connection didn’t complete. Check your FITBIT_CLIENT_ID / SECRET and the registered redirect URL (see FITBIT_SETUP.md), then try again.');
-    }
-  } catch (e) {}
-  syncWhoop();
-  syncFitbit();
-})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="db.js?v=15"></script>
