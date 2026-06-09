@@ -259,7 +259,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
  * Apps in the suite — one bento card each.
  * ============================================================ */
 const APPS = [
-  { file: 'finance.html',     name: 'Finance',     tag: 'Net worth · subs · orders · wishlist', icon: '💰', wide: true },
+  { file: 'finance.html',     name: 'Finance',     tag: 'Portfolio · passive income · payouts', icon: '💰', wide: true },
   { file: 'gym.html',         name: 'Gym',         tag: 'Progressive overload coach',           icon: '🏋️', wide: true },
   { file: 'supplements.html', name: 'Supplements', tag: 'Your stack + smart recommendations',   icon: '💊' },
   { file: 'water.html',       name: 'Water',       tag: 'Daily hydration target',                icon: '💧' },
@@ -421,7 +421,7 @@ function localDateKey(d){ d = d || new Date(); return d.getFullYear() + '-' + St
 function activeDateKey(){ const d = new Date(); if (d.getHours() < 6) d.setDate(d.getDate() - 1); return localDateKey(d); }
 function statFor(file){
   try {
-    if (file === 'finance.html') { const s = lsGet('finance_standalone_v1'); if (s && Array.isArray(s.accounts) && s.accounts.length) { const nw = s.accounts.reduce((a,x)=>a+(Number(x.amountCHF)||0),0); return { value: 'CHF ' + fmtNum(nw), label: 'net worth' }; } }
+    if (file === 'finance.html') { const s = lsGet('finance_portfolio_v1'); if (s && (s.invested > 0 || s.passiveIncome > 0)) { const sym = ({USD:'$',EUR:'€',GBP:'£',CHF:'Fr '}[s.currency] || (s.currency+' ')); const inv = sym + fmtNum(s.invested||0); const lbl = s.passiveIncome > 0 ? '~'+sym+fmtNum(s.passiveIncome)+'/mo passive' : 'total invested'; return { value: inv, label: lbl }; } }
     else if (file === 'supplements.html') { const s = lsGet('supplements_standalone_v1'); if (s && Array.isArray(s.items) && s.items.length) { const tk = (s.taken && s.taken[activeDateKey()]) || {}; const n = s.items.filter(i => tk[i.id]).length; return { value: n + '/' + s.items.length, label: 'taken today' }; } }
     else if (file === 'water.html') { const s = lsGet('water_standalone_v1'); if (s && s.logs) { const n = s.logs[localDateKey()] || 0; return { value: String(n), label: (n === 1 ? 'drink' : 'drinks') + ' today' }; } }
     else if (file === 'whoop.html') { if (health && health.recovery != null) return { value: Math.round(health.recovery) + '%', label: 'recovery' }; }
