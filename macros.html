@@ -64,6 +64,14 @@
   @media (max-width: 560px) { .macroInputGrid { grid-template-columns: repeat(2, 1fr); } }
   .macroInputField { display:flex; flex-direction:column; gap:6px; }
   .macroInputLabel { font-family: var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color: var(--muted); }
+
+  .macroStatus { font-family: var(--font-mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; padding:2px 6px; border-radius: var(--radius-pill); margin-top:2px; }
+  .macroStatus.st-warn  { color: var(--neg); background: color-mix(in srgb, var(--neg) 14%, transparent); }
+  .macroStatus.st-ok    { color: #4FE3D0; background: color-mix(in srgb, #4FE3D0 14%, transparent); }
+  .macroStatus.st-ideal { color: var(--brand); background: var(--brand-soft); }
+  .macroStatus.st-muted { color: var(--muted); background: var(--track); }
+  .editTargetsBtn { background:transparent; border:1px solid var(--border); color:var(--muted); font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; padding:4px 10px; border-radius:var(--radius-pill); cursor:pointer; flex-shrink:0; }
+  .editTargetsBtn:hover { color:var(--brand); border-color:var(--brand-line); }
 </style>
 </head>
 <body>
@@ -72,6 +80,7 @@
 </main>
 
 <script src="theme.js"></script>
+<script src="patron-store.js?v=1"></script>
 <script>
 /* ============================================================
  * Macros — a simple daily food + macro tracker.
@@ -112,14 +121,13 @@ function saveAll(o){ try { localStorage.setItem(STORE_KEY, JSON.stringify(o)); }
 let store = loadAll();
 function todaysLog(){ return store[todayKey()] || []; }
 function setTodaysLog(list){ store[todayKey()] = list; saveAll(store); }
-function goalCal(){ return store.goalCal != null ? store.goalCal : 2000; } // daily calorie target (editable)
-function setGoalCal(n){ store.goalCal = n; saveAll(store); }
 
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function round(n){ return Math.round(n); }
 
 let query = '';
 let matches = [];
+let settingsOpen = false;
 
 /* ---- calculations ---- */
 function totals(){
@@ -128,15 +136,34 @@ function totals(){
   }, { cal:0, p:0, c:0, f:0 });
 }
 
+/* ---- macro status logic ---- */
+function proteinStatus(p, tgt) {
+  if (p < tgt.proteinMinimum) return { label: 'behind', cls: 'st-warn' };
+  if (p < tgt.proteinGoal)    return { label: 'minimum hit', cls: 'st-ok' };
+  if (p <= tgt.proteinUsefulLimit) return { label: 'ideal', cls: 'st-ideal' };
+  return { label: 'above limit', cls: 'st-muted' };
+}
+function fatStatus(f, tgt) {
+  if (f < tgt.fatMinimum)  return { label: 'too low', cls: 'st-warn' };
+  if (f <= tgt.fatIdealMax) return { label: 'ideal', cls: 'st-ideal' };
+  return { label: 'high', cls: 'st-muted' };
+}
+function carbStatus(c, tgt) {
+  const g = tgt.carbGoal;
+  if (c <= g * 0.8)  return { label: 'remaining', cls: 'st-muted' };
+  if (c <= g * 1.05) return { label: 'good', cls: 'st-ideal' };
+  return { label: 'exceeded', cls: 'st-warn' };
+}
+
 /* ---- views ---- */
 function summaryHtml(){
   const t = totals();
-  const goal = goalCal();
+  const targets = PatronStore.macroTargets();
+  const goal = targets.calories;
   const remaining = goal - t.cal;
   const over = remaining < 0;
   const pct = Math.min(100, goal > 0 ? (t.cal / goal) * 100 : 0);
 
-  // MyFitnessPal-style: Goal − Food = Remaining
   const cell = (cls, n, l) => '<div class="calCell ' + cls + '"><span class="n">' + round(n) + '</span><span class="l">' + l + '</span></div>';
   const head = '<div class="calHead">'
     + '<div class="calMath">'
@@ -146,20 +173,63 @@ function summaryHtml(){
     + '<span class="calOp">=</span>'
     + cell('remain' + (over ? ' over' : ''), Math.abs(remaining), over ? 'over' : 'remaining')
     + '</div>'
-    + '<div class="goalEdit"><span class="calCell"><span class="l">daily goal</span></span>'
-    + '<input class="fieldInput" id="goal" type="number" min="0" step="50" value="' + goal + '" /></div>'
+    + '<button class="editTargetsBtn" id="editTargetsBtn">✎ Targets</button>'
     + '</div>';
   const bar = '<div class="bar"><div class="barFill' + (over ? ' over' : '') + '" style="width:' + pct + '%"></div></div>';
 
-  const box = (accent, val, unit, label) =>
-    '<div class="macroBox" data-accent="' + accent + '"><span class="macroVal">' + round(val) + (unit||'') + '</span><span class="macroLabel">' + label + '</span></div>';
+  const pSt = proteinStatus(t.p, targets);
+  const fSt = fatStatus(t.f, targets);
+  const cSt = carbStatus(t.c, targets);
+  const box = (accent, val, unit, label, st) =>
+    '<div class="macroBox" data-accent="' + accent + '">'
+    + '<span class="macroVal">' + round(val) + (unit||'') + '</span>'
+    + '<span class="macroLabel">' + label + '</span>'
+    + (st ? '<span class="macroStatus ' + st.cls + '">' + st.label + '</span>' : '')
+    + '</div>';
   return '<section class="card"><span class="cardName">Today</span>'
     + head + bar
     + '<div class="macroGrid" style="margin-top:var(--space-4)">'
-    + box('p', t.p, 'g', 'protein')
-    + box('c', t.c, 'g', 'carbs')
-    + box('f', t.f, 'g', 'fat')
-    + box('cal', t.cal, '', 'calories')
+    + box('p', t.p, 'g', 'protein', pSt)
+    + box('c', t.c, 'g', 'carbs', cSt)
+    + box('f', t.f, 'g', 'fat', fSt)
+    + box('cal', t.cal, '', 'calories', null)
+    + '</div></section>';
+}
+
+function macroSettingsHtml(){
+  const raw = PatronStore.settings().macroTargets || {};
+  const T = Object.assign({calories:2200,proteinGoal:150,proteinMinimum:130,proteinUsefulLimit:170,fatGoal:55,fatMinimum:48,fatIdealMin:50,fatIdealMax:60,carbMode:'auto',carbGoal:270}, raw);
+  const inp = (id, val, label) =>
+    '<div class="macroInputField"><label class="macroInputLabel" for="' + id + '">' + label + '</label>'
+    + '<input class="fieldInput" id="' + id + '" type="number" min="0" step="1" value="' + val + '" /></div>';
+  return '<section class="card">'
+    + '<span class="cardName">Edit targets</span>'
+    + '<div class="macroInputGrid" style="grid-template-columns:repeat(2,1fr)">'
+    + inp('st-calories', T.calories, 'Calorie goal')
+    + '<div></div></div>'
+    + '<div class="macroInputGrid">'
+    + inp('st-p-goal', T.proteinGoal, 'Protein goal')
+    + inp('st-p-min', T.proteinMinimum, 'Min protein')
+    + inp('st-p-max', T.proteinUsefulLimit, 'Upper limit')
+    + '<div></div></div>'
+    + '<div class="macroInputGrid">'
+    + inp('st-f-goal', T.fatGoal, 'Fat goal')
+    + inp('st-f-min', T.fatMinimum, 'Min fat')
+    + inp('st-f-imin', T.fatIdealMin, 'Ideal min')
+    + inp('st-f-imax', T.fatIdealMax, 'Ideal max')
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:var(--space-4)">'
+    + '<span class="macroInputLabel" style="flex-shrink:0">Carbs</span>'
+    + '<select class="fieldInput" id="st-carb-mode" style="max-width:150px">'
+    + '<option value="auto"' + (T.carbMode==='auto'?' selected':'') + '>Auto-calculate</option>'
+    + '<option value="manual"' + (T.carbMode==='manual'?' selected':'') + '>Manual</option>'
+    + '</select>'
+    + '<input class="fieldInput" id="st-carb-goal" type="number" min="0" value="' + T.carbGoal + '" style="max-width:80px"'
+    + (T.carbMode==='auto'?' disabled':'') + ' />'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-top:var(--space-5)">'
+    + '<button class="btn btn-primary" id="saveTargetsBtn">Save</button>'
+    + '<button class="btn" id="cancelTargetsBtn">Cancel</button>'
     + '</div></section>';
 }
 
@@ -210,7 +280,12 @@ function headerHtml(){
 
 function render(){
   document.getElementById('app').innerHTML =
-    headerHtml() + summaryHtml() + addMacrosHtml() + searchHtml() + logHtml();
+    headerHtml()
+    + summaryHtml()
+    + (settingsOpen ? macroSettingsHtml() : '')
+    + addMacrosHtml()
+    + searchHtml()
+    + logHtml();
   document.getElementById('themeSeg').innerHTML = Patron.switcherHtml();
 }
 
@@ -218,18 +293,45 @@ function render(){
 document.addEventListener('input', e => {
   if (e.target.id === 'q') {
     query = e.target.value;
-    // re-render only the results list so the search box keeps focus + caret
     document.getElementById('results').innerHTML = resultsInner();
   }
-  if (e.target.id === 'goal') {
-    const n = Number(e.target.value);
-    setGoalCal(isFinite(n) && n >= 0 ? n : 0);
-    render(); // refresh the Remaining number + bar live
-    document.getElementById('goal').focus(); // keep the cursor in the goal box
+  if (e.target.id === 'st-carb-mode') {
+    const manual = e.target.value === 'manual';
+    const carbGoalEl = document.getElementById('st-carb-goal');
+    if (carbGoalEl) carbGoalEl.disabled = !manual;
   }
 });
 
 document.addEventListener('click', e => {
+  if (e.target.id === 'editTargetsBtn') {
+    settingsOpen = !settingsOpen;
+    render();
+    return;
+  }
+  if (e.target.id === 'cancelTargetsBtn') {
+    settingsOpen = false;
+    render();
+    return;
+  }
+  if (e.target.id === 'saveTargetsBtn') {
+    const g = (id) => { const el = document.getElementById(id); return el ? Number(el.value) || 0 : 0; };
+    const carbMode = (document.getElementById('st-carb-mode') || {}).value || 'auto';
+    PatronStore.saveSettings({ macroTargets: {
+      calories: g('st-calories'),
+      proteinGoal: g('st-p-goal'),
+      proteinMinimum: g('st-p-min'),
+      proteinUsefulLimit: g('st-p-max'),
+      fatGoal: g('st-f-goal'),
+      fatMinimum: g('st-f-min'),
+      fatIdealMin: g('st-f-imin'),
+      fatIdealMax: g('st-f-imax'),
+      carbMode,
+      carbGoal: g('st-carb-goal'),
+    }});
+    settingsOpen = false;
+    render();
+    return;
+  }
   if (e.target.id === 'addMacrosBtn') {
     const cal = Number(document.getElementById('m-cal').value);
     const p   = Number(document.getElementById('m-p').value)  || 0;

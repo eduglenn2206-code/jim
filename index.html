@@ -222,6 +222,18 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .tickerItem[data-tone="muted"] { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .tickerTrack { animation: none; } .tickerViewport { overflow-x: auto; } }
 
+/* Today Command Center */
+.cmdCenter { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-5); box-shadow: var(--card-shadow); }
+.cmdEyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--space-4); }
+.cmdGrid { display:grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-3); margin-bottom: var(--space-4); }
+@media (max-width: 640px) { .cmdGrid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 380px) { .cmdGrid { grid-template-columns: repeat(2, 1fr); } }
+.cmdCell { display:flex; flex-direction:column; gap:3px; }
+.cmdCellVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.cmdCellLabel { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.cmdRec { display:flex; align-items:center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--brand-soft); border: 1px solid var(--brand-line); border-radius: var(--radius-md); font-size: 13px; font-weight: 600; line-height:1.4; }
+.cmdRecIcon { font-size: 15px; flex-shrink:0; }
+
 </style>
 </head>
 <body>
@@ -370,10 +382,29 @@ function weeklyTileHtml(){
   const wSub = d.weightDelta != null ? (d.weightDelta > 0 ? '+' : '') + d.weightDelta + ' this week' : d.validWeights.length + ' logged';
   const gVal = d.workoutDays + '/' + d.daysSoFar;
   const sVal = d.supDaysTracked ? d.supDaysGood + '/' + d.supDaysTracked : '—';
+  // avg macros this week from PatronStore
+  let macAvgCal = null, macAvgPro = null;
+  try {
+    if (window.PatronStore) {
+      const range = PatronStore.range(7);
+      const days = range.filter(r => r.log.macros.cal > 0);
+      if (days.length) {
+        macAvgCal = Math.round(days.reduce((s, r) => s + r.log.macros.cal, 0) / days.length);
+        macAvgPro = Math.round(days.reduce((s, r) => s + r.log.macros.protein, 0) / days.length);
+      }
+    }
+  } catch(e){}
+
   const metric = (val, label, sub) => '<div class="weekMetric"><span class="weekMetricVal">' + val + '</span><span class="weekMetricLabel">' + label + '</span>' + (sub ? '<span class="weekMetricSub">' + sub + '</span>' : '') + '</div>';
   return '<a class="weekTile" href="weekly.html">'
     + '<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>'
-    + '<div class="weekMetrics">' + metric(wVal, 'Weight', wSub) + metric(gVal, 'Trained', 'days') + metric(sVal, 'Supps', 'days on') + '</div>'
+    + '<div class="weekMetrics">'
+    + metric(wVal, 'Weight', wSub)
+    + metric(gVal, 'Trained', 'days')
+    + metric(sVal, 'Supps', 'days on')
+    + (macAvgCal != null ? metric(macAvgCal + '', 'Avg cal', 'kcal/day') : '')
+    + (macAvgPro != null ? metric(macAvgPro + 'g', 'Avg prot', 'per day') : '')
+    + '</div>'
     + weightSparkline(d.weights, d.validWeights)
     + '</a>';
 }
@@ -428,8 +459,25 @@ function tickerMetrics(){
   const out = [];
   const add = (label, value, unit, tone, delta) => out.push({ label, value, unit: unit || '', tone: tone || 'brand', delta: delta || '' });
   try {
+    // finance — reads flat invested + cashBalance (not non-existent accounts[])
     const fin = lsGet('finance_portfolio_v1');
-    if (fin && Array.isArray(fin.accounts) && fin.accounts.length){ const nw = fin.accounts.reduce((a,x)=>a+(Number(x.amountCHF)||0),0); add('NET', 'CHF ' + fmtNum(nw), '', 'good'); }
+    if (fin && ((fin.invested||0) + (fin.cashBalance||0)) > 0) {
+      const sym = ({USD:'$',EUR:'€',GBP:'£',CHF:'Fr '}[fin.currency] || '');
+      const net = (Number(fin.invested)||0) + (Number(fin.cashBalance)||0);
+      add('NET', sym + fmtNum(net), '', 'good');
+    }
+    // macros from PatronStore
+    if (window.PatronStore) {
+      const macLog = PatronStore.today().macros;
+      if (macLog.cal > 0) {
+        const tgt = PatronStore.macroTargets();
+        const calRem = tgt.calories - macLog.cal;
+        const calDelta = calRem > 0 ? '−' + Math.round(calRem) + ' rem' : '+' + Math.round(-calRem) + ' over';
+        add('CAL', String(Math.round(macLog.cal)), 'kcal', calRem >= 0 ? 'brand' : 'watch', calDelta);
+        const pro = Math.round(macLog.protein);
+        add('PRO', pro + 'g', '', pro >= tgt.proteinGoal ? 'good' : 'brand');
+      }
+    }
     const wat = lsGet('water_standalone_v1');
     if (wat && wat.logs){ const n = wat.logs[localDateKey()] || 0; add('H2O', String(n), n === 1 ? 'drink' : 'drinks', 'brand'); }
     const sup = lsGet('supplements_standalone_v1');
@@ -458,6 +506,61 @@ function tickerHtml(){
     + seq + seq + '</div></div></div>';
 }
 
+/* ---- Today Command Center ---- */
+function commandCenterHtml(){
+  if (!window.PatronStore) return '';
+  try {
+    const log = PatronStore.today();
+    const targets = PatronStore.macroTargets();
+    const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+
+    const calLogged = Math.round(log.macros.cal);
+    const calStr = calLogged > 0 ? calLogged + '/' + targets.calories : targets.calories + ' goal';
+
+    const protLogged = Math.round(log.macros.protein);
+    const protStr = protLogged > 0 ? protLogged + 'g' : '—';
+    const protOver = protLogged > 0 && protLogged < targets.proteinMinimum;
+
+    const waterStr = log.water.count + '/' + log.water.goal;
+    const supStr = log.supplements.total > 0 ? log.supplements.completed.length + '/' + log.supplements.total : '—';
+    const gymStr = log.gym.trained ? '✓' : '—';
+    const weightStr = log.weight
+      ? (log.weight.unit === 'lb' ? log.weight.lb + ' lb' : Math.round(log.weight.kg * 10)/10 + ' kg')
+      : '—';
+
+    // priority recommendation — first failing condition wins
+    let rec;
+    if (protLogged > 0 && protLogged < targets.proteinMinimum)
+      rec = { icon: '⚡', text: 'Protein behind — prioritize 40g next meal.' };
+    else if (log.water.count > 0 && log.water.count < Math.ceil(log.water.goal * 0.5))
+      rec = { icon: '💧', text: 'Hydration behind — drink a glass this hour.' };
+    else if (!log.gym.trained && log.gym.dayType && log.gym.dayType !== 'Rest' && log.gym.dayType !== 'rest')
+      rec = { icon: '🏋️', text: (log.gym.dayType || 'Gym') + ' day — log your top set.' };
+    else if (!log.goals.length)
+      rec = { icon: '🎯', text: 'No goals set — add one priority for today.' };
+    else if (!log.weight)
+      rec = { icon: '⚖️', text: "Log today's weight." };
+    else
+      rec = { icon: '✅', text: 'Looking solid — stay consistent.' };
+
+    const cell = (val, label, color) =>
+      '<div class="cmdCell"><span class="cmdCellVal"' + (color ? ' style="color:' + color + '"' : '') + '>' + val + '</span><span class="cmdCellLabel">' + label + '</span></div>';
+
+    return '<div class="cmdCenter">'
+      + '<div class="cmdEyebrow">Today · ' + dow + '</div>'
+      + '<div class="cmdGrid">'
+      + cell(calStr, 'Calories')
+      + cell(protStr, 'Protein', protOver ? 'var(--neg)' : null)
+      + cell(waterStr, 'Water')
+      + cell(supStr, 'Supps')
+      + cell(gymStr, 'Gym', log.gym.trained ? 'var(--pos)' : null)
+      + cell(weightStr, 'Weight')
+      + '</div>'
+      + '<div class="cmdRec"><span class="cmdRecIcon">' + rec.icon + '</span>' + esc(rec.text) + '</div>'
+      + '</div>';
+  } catch(e) { return ''; }
+}
+
 /* ---- Daily "did you log it?" reminders (weight + gym), read from each app's storage ---- */
 function loggedWeightToday(){ try { const s = lsGet('progress_standalone_v1'); return !!(s && Array.isArray(s.entries) && s.entries.some(e => e && e.dateKey === localDateKey())); } catch(e){ return false; } }
 function loggedGymToday(){ try { const d = lsGet('po_coach_workout_done'); return !!(d && d[localDateKey()]); } catch(e){ return false; } }
@@ -472,7 +575,7 @@ function remindersHtml(){
 }
 function render(){
   document.getElementById('app').innerHTML =
-    headerHtml() + tickerHtml() + remindersHtml() + '<div class="bento">' + weeklyTileHtml() + APPS.map(cardHtml).join('') + '</div>';
+    headerHtml() + tickerHtml() + commandCenterHtml() + remindersHtml() + '<div class="bento">' + weeklyTileHtml() + APPS.map(cardHtml).join('') + '</div>';
   renderModal();
 }
 
@@ -595,6 +698,7 @@ applyTheme(currentTheme);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="db.js?v=15"></script>
+<script src="patron-store.js?v=1"></script>
 <script src="cloud-sync.js?v=15"></script>
 </body>
 </html>
