@@ -234,6 +234,28 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .cmdRec { display:flex; align-items:center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--brand-soft); border: 1px solid var(--brand-line); border-radius: var(--radius-md); font-size: 13px; font-weight: 600; line-height:1.4; }
 .cmdRecIcon { font-size: 15px; flex-shrink:0; }
 
+/* Daily Check-In modal */
+.ciSection { margin-top: var(--space-5); }
+.ciSectionLabel { display:block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--space-3); }
+.ciToggle { display:flex; gap: var(--space-2); }
+.ciToggleBtn { flex:1; padding: 9px 14px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--muted-strong); font-family: var(--font-ui); font-size: 13px; font-weight: 600; cursor: pointer; text-align:center; transition: all var(--duration) var(--ease-premium); white-space:nowrap; }
+.ciToggleBtn:hover { border-color: var(--border-strong); color: var(--fg); }
+.ciToggleBtn.active { border-color: var(--brand-line); background: var(--brand-soft); color: var(--brand); }
+.ciToggleBtn[data-tone="yes"].active { border-color: var(--pos-line); background: var(--pos-soft); color: var(--pos); }
+.ciToggleBtn[data-tone="no"].active  { border-color: var(--neg-line); background: var(--neg-soft); color: var(--neg); }
+.ciWaterRow { display:flex; align-items:center; gap: var(--space-4); }
+.ciWaterCount { font-family: var(--font-display); font-weight: 600; font-size: var(--text-2xl); letter-spacing:-0.02em; min-width:40px; text-align:center; font-variant-numeric: tabular-nums; }
+.ciWaterBtn { width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--fg); font-size:20px; line-height:1; cursor:pointer; display:grid; place-items:center; transition: all var(--duration) var(--ease-premium); }
+.ciWaterBtn:hover { border-color: var(--brand-line); color: var(--brand); }
+.ciWaterUnit { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.ciSupList { display:flex; flex-direction:column; gap: var(--space-2); margin-top: var(--space-2); }
+.ciSupItem { display:flex; align-items:center; gap: var(--space-3); padding: 9px 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); cursor: pointer; user-select:none; transition: all var(--duration) var(--ease-premium); }
+.ciSupItem.checked { border-color: var(--pos-line); background: var(--pos-soft); }
+.ciSupCheck { width:18px; height:18px; border-radius: var(--radius-sm); border:2px solid var(--border); display:grid; place-items:center; flex-shrink:0; font-size:11px; transition: all var(--duration) var(--ease-premium); }
+.ciSupItem.checked .ciSupCheck { border-color: var(--pos); background: var(--pos); color:#000; }
+.ciSupName { font-size:13px; font-weight:600; }
+.ciMacroNote { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: var(--space-2); }
+
 </style>
 <script src="patron-store.js?v=1"></script>
 </head>
@@ -299,7 +321,7 @@ function firstName(){ return profile && profile.name ? String(profile.name).trim
 /* ============================================================
  * UI state
  * ============================================================ */
-const ui = { profileOpen: false, profileDraft: null };
+const ui = { profileOpen: false, profileDraft: null, checkinOpen: false, checkinDraft: null };
 
 /* ============================================================
  * Views
@@ -548,7 +570,10 @@ function commandCenterHtml(){
       '<div class="cmdCell"><span class="cmdCellVal"' + (color ? ' style="color:' + color + '"' : '') + '>' + val + '</span><span class="cmdCellLabel">' + label + '</span></div>';
 
     return '<div class="cmdCenter">'
-      + '<div class="cmdEyebrow">Today · ' + dow + '</div>'
+      + '<div class="cmdEyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">'
+      + '<span>Today · ' + dow + '</span>'
+      + '<button class="btn btn-primary" data-action="open-checkin" style="font-size:12px;padding:5px 14px;border-radius:var(--radius-pill)">+ Check In</button>'
+      + '</div>'
       + '<div class="cmdGrid">'
       + cell(calStr, 'Calories')
       + cell(protStr, 'Protein', protOver ? 'var(--neg)' : null)
@@ -582,8 +607,136 @@ function render(){
 
 function renderModal(){
   const root = document.getElementById('modalRoot');
+  if (ui.checkinOpen) { root.innerHTML = checkinModalHtml(); return; }
   if (ui.profileOpen) { root.innerHTML = profileModalHtml(); return; }
   root.innerHTML = '';
+}
+
+/* ============================================================
+ * Daily Check-In
+ * ============================================================ */
+function initCheckinDraft(){
+  const log = PatronStore.today();
+  const prog = lsGet('progress_standalone_v1');
+  const weightUnit = (prog && prog.units) || 'kg';
+  const supStore = lsGet('supplements_standalone_v1');
+  const supItems = (supStore && Array.isArray(supStore.items)) ? supStore.items : [];
+  const supChecked = {};
+  supItems.forEach(item => { supChecked[item.id] = log.supplements.completed.includes(item.id); });
+  let weight = '';
+  if (log.weight) weight = weightUnit === 'lb' ? String(log.weight.lb) : String(Math.round(log.weight.kg * 10) / 10);
+  return {
+    weightUnit, weight,
+    gymDone: log.gym.trained ? true : null,
+    dayType: log.gym.dayType || '',
+    cal: '', protein: '', carbs: '', fat: '',
+    water: log.water.count,
+    waterGoal: log.water.goal,
+    waterUnit: log.water.unit || 'bottle',
+    supItems, supChecked,
+    goal: '',
+  };
+}
+function openCheckin(){ ui.checkinDraft = initCheckinDraft(); ui.checkinOpen = true; renderModal(); }
+
+function checkinModalHtml(){
+  const d = ui.checkinDraft; if (!d) return '';
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const dateStr = DAYS[now.getDay()] + ', ' + MONTHS[now.getMonth()] + ' ' + now.getDate();
+  const DAY_TYPES = ['Push','Pull','Legs','Upper','Lower','Full Body','Rest','Cardio'];
+
+  const weightSec = '<div class="ciSection">'
+    + '<span class="ciSectionLabel">Body</span>'
+    + '<div class="field"><label class="fieldLabel">Weight (' + d.weightUnit + ')</label>'
+    + '<input class="fieldInput" id="ci-weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="—" value="' + esc(String(d.weight)) + '" /></div>'
+    + '</div>';
+
+  const gymToggleBtns = '<div class="ciToggle">'
+    + '<button type="button" class="ciToggleBtn' + (d.gymDone === true ? ' active' : '') + '" data-tone="yes" data-action="ci-gym" data-val="yes">Trained ✓</button>'
+    + '<button type="button" class="ciToggleBtn' + (d.gymDone === false ? ' active' : '') + '" data-tone="no" data-action="ci-gym" data-val="no">Rest day</button>'
+    + '</div>';
+  const dayTypePills = d.gymDone === true
+    ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--space-3)">'
+      + DAY_TYPES.map(t => '<button type="button" class="ciToggleBtn' + (d.dayType === t ? ' active' : '') + '" data-action="ci-daytype" data-val="' + t + '" style="flex:0 0 auto;padding:6px 11px;font-size:12px">' + t + '</button>').join('')
+      + '</div>'
+    : '';
+  const gymSec = '<div class="ciSection"><span class="ciSectionLabel">Gym today</span>' + gymToggleBtns + dayTypePills + '</div>';
+
+  const macSec = '<div class="ciSection">'
+    + '<span class="ciSectionLabel">Nutrition</span>'
+    + '<div class="fieldGrid">'
+    + '<div class="field"><label class="fieldLabel">Calories</label><input class="fieldInput" id="ci-cal" type="number" min="0" inputmode="numeric" placeholder="kcal" value="' + esc(d.cal) + '" /></div>'
+    + '<div class="field"><label class="fieldLabel">Protein</label><input class="fieldInput" id="ci-protein" type="number" min="0" step="0.1" inputmode="decimal" placeholder="g" value="' + esc(d.protein) + '" /></div>'
+    + '<div class="field"><label class="fieldLabel">Carbs</label><input class="fieldInput" id="ci-carbs" type="number" min="0" step="0.1" inputmode="decimal" placeholder="g" value="' + esc(d.carbs) + '" /></div>'
+    + '<div class="field"><label class="fieldLabel">Fat</label><input class="fieldInput" id="ci-fat" type="number" min="0" step="0.1" inputmode="decimal" placeholder="g" value="' + esc(d.fat) + '" /></div>'
+    + '</div>'
+    + '<p class="ciMacroNote">Adds to today\'s total in Macros</p>'
+    + '</div>';
+
+  const waterLabel = d.waterUnit === 'glass' ? 'glasses' : 'bottles';
+  const waterSec = '<div class="ciSection">'
+    + '<span class="ciSectionLabel">Water</span>'
+    + '<div class="ciWaterRow">'
+    + '<button type="button" class="ciWaterBtn" data-action="ci-water" data-val="-1">−</button>'
+    + '<span class="ciWaterCount">' + d.water + '</span>'
+    + '<button type="button" class="ciWaterBtn" data-action="ci-water" data-val="1">+</button>'
+    + '<span class="ciWaterUnit">' + waterLabel + ' · goal ' + d.waterGoal + '</span>'
+    + '</div></div>';
+
+  let supSec = '';
+  if (d.supItems.length) {
+    const items = d.supItems.map(item => {
+      const chk = d.supChecked[item.id];
+      return '<div class="ciSupItem' + (chk ? ' checked' : '') + '" data-action="ci-sup" data-id="' + esc(String(item.id)) + '">'
+        + '<span class="ciSupCheck">' + (chk ? '✓' : '') + '</span>'
+        + '<span class="ciSupName">' + esc(item.name) + '</span>'
+        + '</div>';
+    }).join('');
+    supSec = '<div class="ciSection"><span class="ciSectionLabel">Supplements</span><div class="ciSupList">' + items + '</div></div>';
+  }
+
+  const goalSec = '<div class="ciSection">'
+    + '<span class="ciSectionLabel">Today\'s main goal</span>'
+    + '<input class="fieldInput" id="ci-goal" type="text" placeholder="One thing to focus on today…" value="' + esc(d.goal) + '" />'
+    + '</div>';
+
+  return '<div class="overlay" data-action="close-checkin">'
+    + '<div class="panel" data-stop="1" style="max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">'
+    + '<div class="panelHead"><div><div class="panelEyebrow">Daily Check-In</div><h2 class="panelTitle">' + dateStr + '</h2></div>'
+    + '<button type="button" class="panelClose" data-action="close-checkin">×</button></div>'
+    + weightSec + gymSec + macSec + waterSec + supSec + goalSec
+    + '<div class="panelActions" style="padding-top:var(--space-5)">'
+    + '<button type="button" class="btn btn-ghost" data-action="close-checkin">Cancel</button>'
+    + '<button type="button" class="btn btn-primary" data-action="save-checkin">Save check-in</button>'
+    + '</div></div></div>';
+}
+
+function saveCheckin(){
+  const d = ui.checkinDraft; if (!d) return;
+  // Weight
+  if (d.weight !== '') {
+    const kg = d.weightUnit === 'lb' ? Number(d.weight) / 2.20462 : Number(d.weight);
+    if (isFinite(kg) && kg > 0) PatronStore.logWeight(Math.round(kg * 100) / 100);
+  }
+  // Macros (only if at least one value)
+  const cal = Number(d.cal) || 0, pro = Number(d.protein) || 0, carbs = Number(d.carbs) || 0, fat = Number(d.fat) || 0;
+  if (cal > 0 || pro > 0 || carbs > 0 || fat > 0) PatronStore.logMacros({ name: 'Check-in', cal, p: pro, c: carbs, f: fat });
+  // Water
+  PatronStore.setWater(d.water);
+  // Gym
+  if (d.gymDone !== null) PatronStore.setGymTrained(d.gymDone, d.gymDone && d.dayType ? d.dayType : undefined);
+  // Supplements
+  Object.entries(d.supChecked).forEach(([id, done]) => PatronStore.setSupplementDone(id, done));
+  // Goal (only if non-empty and not already logged)
+  const goalText = d.goal.trim();
+  if (goalText) {
+    const existing = PatronStore.today().goals;
+    if (!existing.some(g => g.text === goalText)) PatronStore.addGoal(goalText);
+  }
+  ui.checkinOpen = false; ui.checkinDraft = null;
+  render();
 }
 
 /* ============================================================
@@ -663,12 +816,44 @@ document.addEventListener('click', e => {
   if (action === 'open-profile') { openProfile(); return; }
   if (action === 'close-profile') { if (!stop || btn.tagName === 'BUTTON') { ui.profileOpen = false; renderModal(); } return; }
   if (action === 'save-profile') { saveProfile(); return; }
+  // Check-In
+  if (action === 'open-checkin') { openCheckin(); return; }
+  if (action === 'close-checkin') { if (!stop || btn.tagName === 'BUTTON') { ui.checkinOpen = false; ui.checkinDraft = null; renderModal(); } return; }
+  if (action === 'save-checkin') { saveCheckin(); return; }
+  if (action === 'ci-gym' && ui.checkinDraft) {
+    ui.checkinDraft.gymDone = btn.getAttribute('data-val') === 'yes';
+    renderModal(); return;
+  }
+  if (action === 'ci-daytype' && ui.checkinDraft) {
+    ui.checkinDraft.dayType = btn.getAttribute('data-val');
+    renderModal(); return;
+  }
+  if (action === 'ci-water' && ui.checkinDraft) {
+    const delta = Number(btn.getAttribute('data-val'));
+    ui.checkinDraft.water = Math.max(0, (ui.checkinDraft.water || 0) + delta);
+    renderModal(); return;
+  }
+  if (action === 'ci-sup' && ui.checkinDraft) {
+    const id = btn.getAttribute('data-id');
+    ui.checkinDraft.supChecked[id] = !ui.checkinDraft.supChecked[id];
+    renderModal(); return;
+  }
 });
 
 // Profile-form fields → draft (text/number on input keeps caret; selects on change; units re-renders to relabel).
 // Lazy-init the draft so first-run typing is never dropped.
 document.addEventListener('input', e => {
-  const t = e.target; if (!(t && t.dataset && t.dataset.pf)) return;
+  const t = e.target;
+  // Check-in fields
+  if (ui.checkinDraft) {
+    if (t.id === 'ci-weight')  { ui.checkinDraft.weight  = t.value; return; }
+    if (t.id === 'ci-cal')     { ui.checkinDraft.cal     = t.value; return; }
+    if (t.id === 'ci-protein') { ui.checkinDraft.protein = t.value; return; }
+    if (t.id === 'ci-carbs')   { ui.checkinDraft.carbs   = t.value; return; }
+    if (t.id === 'ci-fat')     { ui.checkinDraft.fat     = t.value; return; }
+    if (t.id === 'ci-goal')    { ui.checkinDraft.goal    = t.value; return; }
+  }
+  if (!(t && t.dataset && t.dataset.pf)) return;
   if (!ui.profileDraft) ui.profileDraft = draftFromProfile();
   ui.profileDraft[t.dataset.pf] = t.value;
 });
