@@ -149,7 +149,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .weekHead { display:flex; align-items:center; justify-content:space-between; gap: var(--space-3); }
 .weekEyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brand); }
 .weekArrow { font-size: 13px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.05em; }
-.weekMetrics { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3) var(--space-4); }
+.weekMetrics { display:grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: var(--space-3) var(--space-4); }
 .weekMetric { display:flex; flex-direction:column; gap: 2px; }
 .weekMetricVal { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .weekMetricLabel { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
@@ -235,6 +235,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-ui), -ap
 .cmdRecIcon { font-size: 15px; flex-shrink:0; }
 
 </style>
+<script src="patron-store.js?v=1"></script>
 </head>
 <body>
 <main class="page grain-overlay">
@@ -370,7 +371,19 @@ function weightSparkline(weights, validWeights){
 }
 function weeklyTileHtml(){
   const d = computeWeekly();
-  const hasData = d.validWeights.length > 0 || d.workoutDays > 0 || d.supDaysTracked > 0;
+
+  // avg macros this week from PatronStore (available now — loaded in <head>)
+  let macAvgCal = null, macAvgPro = null;
+  try {
+    const wkRange = PatronStore.range(7);
+    const macDays = wkRange.filter(r => r.log.macros.cal > 0);
+    if (macDays.length) {
+      macAvgCal = Math.round(macDays.reduce((s, r) => s + r.log.macros.cal, 0) / macDays.length);
+      macAvgPro = Math.round(macDays.reduce((s, r) => s + r.log.macros.protein, 0) / macDays.length);
+    }
+  } catch(e){}
+
+  const hasData = d.validWeights.length > 0 || d.workoutDays > 0 || d.supDaysTracked > 0 || macAvgCal != null;
   if (!hasData){
     return '<a class="weekTile" href="weekly.html">'
       + '<div class="weekHead"><span class="weekEyebrow">This Week</span><span class="weekArrow">View →</span></div>'
@@ -382,18 +395,6 @@ function weeklyTileHtml(){
   const wSub = d.weightDelta != null ? (d.weightDelta > 0 ? '+' : '') + d.weightDelta + ' this week' : d.validWeights.length + ' logged';
   const gVal = d.workoutDays + '/' + d.daysSoFar;
   const sVal = d.supDaysTracked ? d.supDaysGood + '/' + d.supDaysTracked : '—';
-  // avg macros this week from PatronStore
-  let macAvgCal = null, macAvgPro = null;
-  try {
-    if (window.PatronStore) {
-      const range = PatronStore.range(7);
-      const days = range.filter(r => r.log.macros.cal > 0);
-      if (days.length) {
-        macAvgCal = Math.round(days.reduce((s, r) => s + r.log.macros.cal, 0) / days.length);
-        macAvgPro = Math.round(days.reduce((s, r) => s + r.log.macros.protein, 0) / days.length);
-      }
-    }
-  } catch(e){}
 
   const metric = (val, label, sub) => '<div class="weekMetric"><span class="weekMetricVal">' + val + '</span><span class="weekMetricLabel">' + label + '</span>' + (sub ? '<span class="weekMetricSub">' + sub + '</span>' : '') + '</div>';
   return '<a class="weekTile" href="weekly.html">'
@@ -402,8 +403,8 @@ function weeklyTileHtml(){
     + metric(wVal, 'Weight', wSub)
     + metric(gVal, 'Trained', 'days')
     + metric(sVal, 'Supps', 'days on')
-    + (macAvgCal != null ? metric(macAvgCal + '', 'Avg cal', 'kcal/day') : '')
-    + (macAvgPro != null ? metric(macAvgPro + 'g', 'Avg prot', 'per day') : '')
+    + metric(macAvgCal != null ? macAvgCal + '' : '—', 'Avg cal', macAvgCal != null ? 'kcal/day' : null)
+    + metric(macAvgPro != null ? macAvgPro + 'g' : '—', 'Avg prot', macAvgPro != null ? 'per day' : null)
     + '</div>'
     + weightSparkline(d.weights, d.validWeights)
     + '</a>';
@@ -698,7 +699,6 @@ applyTheme(currentTheme);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="db.js?v=15"></script>
-<script src="patron-store.js?v=1"></script>
 <script src="cloud-sync.js?v=15"></script>
 </body>
 </html>
